@@ -85,7 +85,7 @@ order by level;
 
 #21
 #sql_mode=only_full_group_by ERROR
-select Pokemon.id, count(CatchedPokemon.nickname) as '# of Catched' from Pokemon
+select Pokemon.name, count(CatchedPokemon.nickname) as '# of Catched' from Pokemon
 left join CatchedPokemon on Pokemon.id = CatchedPokemon.pid
 group by Pokemon.name order by count(CatchedPokemon.nickname) desc;
 
