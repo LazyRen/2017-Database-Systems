@@ -1,5 +1,7 @@
 #2014004893 이대인
 use Pokemon;
+
+#disable ONLY_FULL_GROUP_BY mode
 set sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
 
 #1
@@ -47,7 +49,6 @@ select avg(level) as 'Average Level' from CatchedPokemon;
 select (max(level) - min(level)) as 'Max Diff. of Level' from CatchedPokemon; 
 
 #14
-#select name from Pokemon where name between 'b' and 'f' order by name;
 select count(*) as '# of Pokemon' from Pokemon where name between 'b' and 'f';
 
 #15
@@ -66,9 +67,10 @@ where Trainer.id in (
 	join Pokemon on CatchedPokemon.pid = Pokemon.id and Pokemon.type = 'Psychic');
 
 #18
-select Trainer.name, Trainer.hometown from Trainer
+select Trainer.name, Trainer.hometown from Trainer 
 join CatchedPokemon on Trainer.id = CatchedPokemon.owner_id
-order by CatchedPokemon.level desc limit 3;
+group by Trainer.id order by avg(CatchedPokemon.level) desc limit 3;
+
 
 #19
 select Trainer.name, count(*) as '# of Pokemon' from Trainer
@@ -82,6 +84,7 @@ join Pokemon on CatchedPokemon.pid = Pokemon.id
 order by level;
 
 #21
+#sql_mode=only_full_group_by ERROR
 select Pokemon.name, count(*) as '# of Catched' from Pokemon
 left join CatchedPokemon on Pokemon.id = CatchedPokemon.pid
 group by Pokemon.name order by count(*) desc;
