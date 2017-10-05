@@ -49,7 +49,7 @@ select avg(level) as 'Average Level' from CatchedPokemon;
 select (max(level) - min(level)) as 'Max Diff. of Level' from CatchedPokemon; 
 
 #14
-select count(*) as '# of Pokemon' from Pokemon where name between 'b' and 'f';
+select count(*) as '# of Pokemon' from Pokemon where name between 'b' and 'f' and name <> 'f';
 
 #15
 select count(*) as '# of Pokemon' from Pokemon where type not in ('Fire', 'Grass', 'Water', 'Electric');
@@ -75,7 +75,7 @@ group by Trainer.id order by avg(CatchedPokemon.level) desc limit 3;
 #19
 select Trainer.name, count(*) as '# of Pokemon' from Trainer
 join CatchedPokemon on Trainer.id = CatchedPokemon.owner_id
-group by Trainer.id order by count(*) desc;
+group by Trainer.id order by count(*) desc, Trainer.name desc;
 
 #20
 select Pokemon.name, level from Gym
