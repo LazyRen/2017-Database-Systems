@@ -1,0 +1,1285 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"cli",
+				"clientSocket"
+			],
+			[
+				"connection",
+				"connectionSocket"
+			],
+			[
+				"ser",
+				"serverSocket"
+			],
+			[
+				"pus",
+				"push_back"
+			],
+			[
+				"push",
+				"push_back\t(11375_flow.cpp)"
+			],
+			[
+				"matc",
+				"matching"
+			],
+			[
+				"mat",
+				"matching"
+			],
+			[
+				"ans",
+				"answer"
+			],
+			[
+				"eate",
+				"eatenBy"
+			],
+			[
+				"eat",
+				"eatenBy"
+			],
+			[
+				"shar",
+				"sharks"
+			],
+			[
+				"isVi",
+				"isVisit"
+			],
+			[
+				"pass",
+				"passenger"
+			],
+			[
+				"mx",
+				"maxLine"
+			],
+			[
+				"max",
+				"maxLine"
+			],
+			[
+				"fi",
+				"firstFree"
+			],
+			[
+				"sol",
+				"solution"
+			],
+			[
+				"while",
+				"while loop\twhile"
+			],
+			[
+				"siz",
+				"size_of_area"
+			],
+			[
+				"si",
+				"size_of_area"
+			],
+			[
+				"ret",
+				"return"
+			],
+			[
+				"nex",
+				"next_last"
+			],
+			[
+				"ls",
+				"lislen"
+			],
+			[
+				"lis",
+				"lislen"
+			],
+			[
+				"get",
+				"get_num"
+			],
+			[
+				"fibo",
+				"fibosum"
+			],
+			[
+				"in",
+				"in_tree"
+			],
+			[
+				"tra",
+				"trace_back"
+			],
+			[
+				"che",
+				"checked"
+			],
+			[
+				"pr",
+				"printf\tprintf …"
+			],
+			[
+				"funct",
+				"functioning"
+			],
+			[
+				"SA",
+				"sa"
+			],
+			[
+				"stac",
+				"stack_cur"
+			],
+			[
+				"test",
+				"test_case"
+			],
+			[
+				"ma",
+				"matched"
+			],
+			[
+				"len",
+				"len_p"
+			],
+			[
+				"match",
+				"matched-1"
+			],
+			[
+				"begi",
+				"begin"
+			],
+			[
+				"is",
+				"is_visit"
+			],
+			[
+				"unit",
+				"unit_num"
+			],
+			[
+				"cur",
+				"cur_x"
+			],
+			[
+				"h",
+				"high"
+			],
+			[
+				"ne",
+				"nodes"
+			],
+			[
+				"to",
+				"toUpperCase"
+			],
+			[
+				"pa",
+				"pParentNode"
+			],
+			[
+				"de",
+				"deleteTreeNode"
+			],
+			[
+				"se",
+				"searchTreeNode"
+			],
+			[
+				"suc",
+				"succNode"
+			],
+			[
+				"r",
+				"right_child"
+			],
+			[
+				"print",
+				"printTreePostorder"
+			],
+			[
+				"pri",
+				"printTreeInorder"
+			],
+			[
+				"p",
+				"pole"
+			],
+			[
+				"lcs",
+				"lcsout"
+			],
+			[
+				"setf",
+				"setFlavor1"
+			],
+			[
+				"flav",
+				"flavor1"
+			],
+			[
+				"fla",
+				"flavor1"
+			],
+			[
+				"fl",
+				"flavor1"
+			],
+			[
+				"lc",
+				"lcn"
+			],
+			[
+				"Li",
+				"LibraryAccount"
+			],
+			[
+				"bo",
+				"book1"
+			],
+			[
+				"th",
+				"this"
+			],
+			[
+				"prin",
+				"print_tree_inorder"
+			],
+			[
+				"remove",
+				"removePolynomial"
+			],
+			[
+				"cu",
+				"cur_node"
+			],
+			[
+				"compa",
+				"compare3"
+			],
+			[
+				"com",
+				"compare2"
+			],
+			[
+				"n",
+				"n_node"
+			],
+			[
+				"fr",
+				"front"
+			],
+			[
+				"Stac",
+				"StackNode"
+			],
+			[
+				"top",
+				"topNode"
+			],
+			[
+				"c",
+				"cur_pt"
+			],
+			[
+				"next",
+				"next_x"
+			],
+			[
+				"if",
+				"if loop\tif"
+			],
+			[
+				"f",
+				"final_ps"
+			],
+			[
+				"for",
+				"for loop\tfor"
+			],
+			[
+				"cur_",
+				"cur_ps"
+			],
+			[
+				"inpu",
+				"input_com1"
+			],
+			[
+				"po",
+				"polynomial_set"
+			],
+			[
+				"tmp",
+				"tmp_node_B"
+			],
+			[
+				"tm",
+				"tmp_node_A"
+			],
+			[
+				"delete",
+				"delete_node"
+			],
+			[
+				"ex",
+				"exponent"
+			],
+			[
+				"polynomia",
+				"polynomial_set"
+			],
+			[
+				"maxexp",
+				"max_expon"
+			],
+			[
+				"PolyN",
+				"PolyNode"
+			],
+			[
+				"rema",
+				"remainWithdrawal"
+			],
+			[
+				"hi",
+				"highest"
+			],
+			[
+				"polyNo",
+				"polyNomial"
+			],
+			[
+				"li",
+				"linkedList"
+			],
+			[
+				"l",
+				"linkedList"
+			],
+			[
+				"sta",
+				"stalacite"
+			],
+			[
+				"stalac",
+				"stalacite"
+			],
+			[
+				"stal",
+				"stalacite"
+			],
+			[
+				"large",
+				"largest_stalagmite"
+			],
+			[
+				"larg",
+				"largest_stalacite"
+			],
+			[
+				"la",
+				"largest_stalagmite"
+			],
+			[
+				"obs",
+				"obstacle"
+			],
+			[
+				"stala",
+				"stalagmite"
+			],
+			[
+				"file",
+				"file_base_name"
+			],
+			[
+				"att",
+				"att"
+			],
+			[
+				"def",
+				"defequip"
+			],
+			[
+				"mp",
+				"mpequip"
+			],
+			[
+				"hp",
+				"hpequip"
+			],
+			[
+				"find",
+				"find_year"
+			],
+			[
+				"digi",
+				"digital_root"
+			],
+			[
+				"di",
+				"digital_root"
+			],
+			[
+				"al",
+				"alpha"
+			],
+			[
+				"alpha",
+				"alphabet"
+			],
+			[
+				"num",
+				"num_b"
+			],
+			[
+				"abo",
+				"above_average_student_percent"
+			],
+			[
+				"ca",
+				"calc_size_of_menu"
+			],
+			[
+				"major",
+				"majorityCount"
+			],
+			[
+				"majo",
+				"majorityCount"
+			],
+			[
+				"country",
+				"country_codes"
+			],
+			[
+				"nu",
+				"num_cuntry"
+			],
+			[
+				"on",
+				"on_hand"
+			],
+			[
+				"is_",
+				"is_empty"
+			],
+			[
+				"stack_",
+				"stack_underflow"
+			],
+			[
+				"stack",
+				"stack_overflow"
+			],
+			[
+				"rad",
+				"read_guesses"
+			],
+			[
+				"secre",
+				"secret_number"
+			],
+			[
+				"ch",
+				"choose_new_secret_number"
+			],
+			[
+				"ro",
+				"roll_dice"
+			],
+			[
+				"play",
+				"play_game"
+			],
+			[
+				"pl",
+				"played_game"
+			],
+			[
+				"st",
+				"string"
+			],
+			[
+				"digit",
+				"digit_seen"
+			],
+			[
+				"dig",
+				"digit_seen"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					"Run"
+				]
+			],
+			[
+				"Packages/C++/C++ Single File.sublime-build",
+				"Run"
+			]
+		],
+		[
+			[
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				],
+				[
+					"Packages/User/C Language.sublime-build",
+					""
+				],
+				[
+					"Packages/User/C Language.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/User/sublimeREPL.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/C++/C++ Single File.sublime-build",
+				"Run"
+			]
+		],
+		[
+			[
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				],
+				[
+					"Packages/User/C Language.sublime-build",
+					""
+				],
+				[
+					"Packages/User/sublimeREPL.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/C++/C++ Single File.sublime-build",
+				"Run"
+			]
+		],
+		[
+			[
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				],
+				[
+					"Packages/User/sublimeREPL.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/C++/C++ Single File.sublime-build",
+				"Run"
+			]
+		],
+		[
+			[
+				[
+					"Packages/Java/Ant.sublime-build",
+					""
+				],
+				[
+					"Packages/Java/JavaC.sublime-build",
+					""
+				],
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				],
+				[
+					"Packages/User/sublimeREPL.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/Java/JavaC.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				]
+			],
+			[
+				"Packages/Python/Python.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				],
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				],
+				[
+					"Packages/User/python_cmd.sublime-build",
+					""
+				],
+				[
+					"Packages/User/sublimeREPL.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/User/python_cmd.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				],
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				],
+				[
+					"Packages/User/sublimeREPL.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				],
+				[
+					"Packages/User/C Language.sublime-build",
+					""
+				],
+				[
+					"Packages/User/C Language.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/User/sublimeREPL.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/User/C Language.sublime-build",
+				"Run"
+			]
+		],
+		[
+			[
+				[
+					"Packages/SublimeREPL/sublimerepl_build_system_hack.sublime-build",
+					""
+				],
+				[
+					"Packages/User/C Language.sublime-build",
+					""
+				],
+				[
+					"Packages/User/sublimeREPL.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/User/C Language.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 354.0,
+		"last_filter": "packa",
+		"selected_items":
+		[
+			[
+				"packa",
+				"Package Control: Remove Package"
+			],
+			[
+				"packagere",
+				"PackageResourceViewer: Open Resource"
+			],
+			[
+				"re",
+				"PackageResourceViewer: Extract Package"
+			],
+			[
+				"reso",
+				"PackageResourceViewer: Extract Package"
+			],
+			[
+				"resou",
+				"PackageResourceViewer: Extract Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"ins",
+				"Package Control: Install Package"
+			],
+			[
+				"git p",
+				"Git: Push"
+			],
+			[
+				"git co",
+				"Git: Commit"
+			],
+			[
+				"git pu",
+				"Git: Push"
+			],
+			[
+				"git add",
+				"Git: Add All"
+			],
+			[
+				"git pus",
+				"Git: Push"
+			],
+			[
+				"git com",
+				"Git: Commit"
+			],
+			[
+				"git ad",
+				"Git: Add All"
+			],
+			[
+				"git c",
+				"Git: Commit"
+			],
+			[
+				"git push",
+				"Git: Push"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"gitpush",
+				"Git: Push"
+			],
+			[
+				"gitcom",
+				"Git: Commit"
+			],
+			[
+				"git",
+				"Git: Add All"
+			],
+			[
+				"prv",
+				"PackageResourceViewer: Open Resource"
+			],
+			[
+				"browse",
+				"Preferences: Browse Packages"
+			],
+			[
+				"GITST",
+				"Git: Status"
+			],
+			[
+				"INSTA",
+				"Package Control: Install Package"
+			],
+			[
+				"git sta",
+				"Git: Status"
+			],
+			[
+				"git comm",
+				"Git: Commit"
+			],
+			[
+				"commit",
+				"Git: Commit"
+			],
+			[
+				"git omm",
+				"Git: Commit"
+			],
+			[
+				"gitco",
+				"Git: Commit"
+			],
+			[
+				"git ",
+				"Set Syntax: Git Commit Message"
+			],
+			[
+				"op",
+				"PackageResourceViewer: Open Resource"
+			],
+			[
+				"OPEN",
+				"PackageResourceViewer: Open Resource"
+			],
+			[
+				"openres",
+				"PackageResourceViewer: Open Resource"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"prv ex",
+				"PackageResourceViewer: Extract Package"
+			],
+			[
+				"package",
+				"Package Control: Install Package"
+			],
+			[
+				"pac",
+				"Preferences: Browse Packages"
+			],
+			[
+				"pa",
+				"Package Control: Install Package"
+			],
+			[
+				"package in",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 704.0
+	},
+	"console":
+	{
+		"height": 128.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = 'df21e130d211cfc94d9b0905775a7c0f' + '1e3d39e33b79698005270310898eea76'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)",
+			"import urllib.request,os,hashlib; h = '7183a2d3e96f11eeadd761d777e62404' + 'e330c659d4bb41d3bdf022e94cab3cd0'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by) ",
+			" import urllib.request,os,hashlib; h = '7183a2d3e96f11eeadd761d777e62404' + 'e330c659d4bb41d3bdf022e94cab3cd0'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by) "
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/Users/LazyRen/Google 드라이브/2 - 2/데이터베이스시스템/project/Project2"
+	],
+	"file_history":
+	[
+		"/Users/LazyRen/Google 드라이브/2 - 2/데이터베이스시스템/project2/bpt/src/main.c",
+		"/Users/LazyRen/Google 드라이브/2 - 2/데이터베이스시스템/project2/bpt/Makefile",
+		"/Users/LazyRen/Google 드라이브/2 - 2/데이터베이스시스템/project2/bpt/include/bpt.h",
+		"/Users/LazyRen/Google 드라이브/2 - 2/데이터베이스시스템/project2/bpt/src/pages.c",
+		"/Users/LazyRen/Documents/Programming/TEST/test.c",
+		"/Users/LazyRen/Google 드라이브/2 - 2/데이터베이스시스템/project2/bpt/src/bpt.c",
+		"/Users/LazyRen/Google 드라이브/2 - 2/데이터베이스시스템/project2/bpt_origin/include/bpt.h",
+		"/Users/LazyRen/Google 드라이브/2 - 2/알고리즘/c++/Rodcutting.cpp",
+		"/Users/LazyRen/Documents/Programming/TEST/test2.c",
+		"/Users/LazyRen/Google 드라이브/2 - 2/데이터베이스시스템/project2/bpt/lib/libbpt.a",
+		"/Users/LazyRen/Google 드라이브/2 - 2/시스템프로그래밍/과제2/python3.5_elfAnalysis.txt",
+		"/Users/LazyRen/Google 드라이브/2 - 2/시스템프로그래밍/과제2/main_elfAnalysis.txt",
+		"/Users/LazyRen/Google 드라이브/2 - 2/시스템프로그래밍/과제2/main_arm_elfAnalysis.txt",
+		"/Users/LazyRen/Downloads/학생_실습파일/pw: 1017",
+		"/Users/LazyRen/Google 드라이브/2 - 2/시스템프로그래밍/과제2/ex1.txt",
+		"/Users/LazyRen/Google 드라이브/2 - 2/컴퓨터네트워크/TCPclient.py",
+		"/Users/LazyRen/Google 드라이브/2 - 2/시스템프로그래밍/과제2/python3.5_readelf.txt",
+		"/Users/LazyRen/Google 드라이브/2 - 2/시스템프로그래밍/과제2/vmlinux_readelf.txt",
+		"/Users/LazyRen/Google 드라이브/2 - 2/시스템프로그래밍/과제2/vmlinux_elfAnalysis.txt",
+		"/Users/LazyRen/Google 드라이브/2 - 2/시스템프로그래밍/과제2/vmlinuxo_readelf.txt",
+		"/Users/LazyRen/Google 드라이브/2 - 2/시스템프로그래밍/과제2/main_arm_readelf.txt",
+		"/Users/LazyRen/Google 드라이브/2 - 2/시스템프로그래밍/과제2/main_readelf.txt",
+		"/Users/LazyRen/Documents/Programming/python_cmd.sh",
+		"/Users/LazyRen/Library/Application Support/Sublime Text 3/Packages/Python/Python.sublime-build",
+		"/Users/LazyRen/Library/Application Support/Sublime Text 3/Packages/User/python_cmd.sublime-build",
+		"/Users/LazyRen/Library/Application Support/Sublime Text 3/Packages/C++/C++ Single File.sublime-build",
+		"/Users/LazyRen/Documents/Programming/TEST/test.py",
+		"/Users/LazyRen/Google 드라이브/2 - 2/알고리즘/c++/FindingSameKeys.cpp",
+		"/Users/LazyRen/Library/Application Support/Sublime Text 3/Packages/User/C++.sublime-settings",
+		"/Users/LazyRen/Google 드라이브/2 - 2/컴퓨터네트워크/smtp.py",
+		"/Users/LazyRen/Google 드라이브/2 - 2/컴퓨터네트워크/TCPserver.py",
+		"/Users/LazyRen/Google 드라이브/2 - 2/컴퓨터네트워크/UDPClient.py",
+		"/Users/LazyRen/Google 드라이브/2 - 2/컴퓨터네트워크/UDPServer.py",
+		"/Users/LazyRen/Google 드라이브/2 - 2/시스템프로그래밍/sysprog2017/fileflags.c",
+		"/Users/LazyRen/Google 드라이브/2 - 2/시스템프로그래밍/sysprog2017/dup.c",
+		"/Users/LazyRen/Google 드라이브/2 - 2/시스템프로그래밍/sysprog2017/redirection.c",
+		"/Users/LazyRen/Google 드라이브/2 - 2/컴퓨터네트워크/WebServer.py",
+		"/Users/LazyRen/Documents/Programming/TEST/test.cpp",
+		"/Users/LazyRen/Google 드라이브/2 - 2/시스템프로그래밍/sysprog2017/hole.c",
+		"/Users/LazyRen/Google 드라이브/2 - 2/dup.c",
+		"/Users/LazyRen/Google 드라이브/2 - 2/마이크로프로세서/Homework 1",
+		"/Users/LazyRen/Documents/daeIn/mongoose.conf",
+		"/Users/LazyRen/Documents/Programming/TEST/test2.cpp",
+		"/Users/LazyRen/Google 드라이브/2 - 2/FindingSameKeys.cpp",
+		"/Users/LazyRen/Google 드라이브/2 - 2/데이터베이스시스템/project1/insert.sql",
+		"/Users/LazyRen/Google 드라이브/2 - 2/Counting.cpp",
+		"/Users/LazyRen/Google 드라이브/2 - 2/시스템프로그래밍/커널 컴파일 과제 (~9.29)",
+		"/Users/LazyRen/Google 드라이브/2 - 2/WebClient.py",
+		"/Users/LazyRen/Downloads/UDPServer.py",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/picnic.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/11038.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1402.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2570.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/11378.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/11377.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/11376.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/11375_flow.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/Acmicpc_set/c.cpp",
+		"/Users/LazyRen/Downloads/cmake_local.sh",
+		"/Users/LazyRen/2017_CSE2010_2014004893/BTree.c",
+		"/Users/LazyRen/Documents/Study/2 - 1/Cpp/OOP Project/Makefile",
+		"/Users/LazyRen/Documents/Programming/TEST/test.java",
+		"/Users/LazyRen/Library/Application Support/Sublime Text 3/Packages/User/for.sublime-snippet",
+		"/Users/LazyRen/Library/Application Support/Sublime Text 3/Packages/User/if.sublime-snippet",
+		"/Users/LazyRen/Library/Application Support/Sublime Text 3/Packages/User/while.sublime-snippet",
+		"/Users/LazyRen/Library/Application Support/Sublime Text 3/Packages/User/scanf.sublime-snippet",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/11375.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1017.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1671.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2188.cpp",
+		"/Users/LazyRen/Documents/Programming/TEST/Syntax_Highlighter",
+		"/Volumes/ESD-USB/certifi.txt",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2228_new.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2228.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/algospot/picnic.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2629.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/5721.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2698.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2616.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/8895.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2515.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2026.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/7579.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2302.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2169.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2624.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2201.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1020.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2573.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2662.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/4386.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2159.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/acmicpc_C.sublime-project",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2618.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1931.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1981.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1981.coo",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1700.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/11726.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/11399.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/11399.cp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/3055.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/3055_new.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/9466.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/10828.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1102.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1648_new.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1648.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2718.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1086.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2098.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2660.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/9248.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/5582.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/11478.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1701.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/4354.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1305.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1787.cpp",
+		"/Users/LazyRen/Downloads/okr_tests/okr1.in",
+		"/Users/LazyRen/Documents/Study/ICEWALL/ICEWALL_여름과제/decodeit/q2sample.py",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/scpc_2.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/scpc_1.cpp",
+		"/Users/LazyRen/Documents/Study/ICEWALL/ICEWALL_여름과제/decodeit/암호.md",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1197.cpp",
+		"/Users/LazyRen/Library/Application Support/Sublime Text 3/Packages/User/C Language.sublime-build",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/1717.cpp",
+		"/Users/LazyRen/Documents/Programming/C Language/acmicpc_C/2309.cpp"
+	],
+	"find":
+	{
+		"height": 41.0
+	},
+	"find_in_files":
+	{
+		"height": 182.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": true,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": false
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"bracket_highlighter.busy": false,
+							"bracket_highlighter.locations":
+							{
+								"close":
+								{
+								},
+								"icon":
+								{
+								},
+								"open":
+								{
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.regions":
+							[
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content"
+							],
+							"git_gutter_is_enabled": false,
+							"origin_encoding": "UTF-8",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 41.0
+	},
+	"input":
+	{
+		"height": 42.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 222.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.git":
+	{
+		"height": 216.0
+	},
+	"pinned_build_system": "",
+	"project": "BPT.sublime-project",
+	"replace":
+	{
+		"height": 78.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"Package Control Messages"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"~/Documents/Programming/C Language/acmicpc_C/acmicpc_C.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": false,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 191.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
