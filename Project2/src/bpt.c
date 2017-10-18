@@ -342,14 +342,13 @@ void find_and_print(node * root, long long int key, bool verbose) {
 /* Finds and prints the keys, pointers, and values within a range
  * of keys between key_start and key_end, including both bounds.
  */
-void find_and_print_range(node * root, long long int key_start, long long int key_end,
-		bool verbose) {
+void find_and_print_range(node * root, long long int key_start, long long int key_end, bool verbose) {
 	int i;
-	int array_size = key_end - key_start + 1;
-	int returned_keys[array_size];
+	long long int array_size = key_end - key_start + 1;
+	long long returned_keys[array_size];
 	void * returned_pointers[array_size];
-	int num_found = find_range( root, key_start, key_end, verbose,
-			returned_keys, returned_pointers );
+	int num_found = find_range(root, key_start, key_end, verbose,
+			returned_keys, returned_pointers);
 	if (!num_found)
 		printf("None found.\n");
 	else {
@@ -368,8 +367,7 @@ void find_and_print_range(node * root, long long int key_start, long long int ke
  * returned_keys and returned_pointers, and returns the number of
  * entries found.
  */
-int find_range(node * root, long long int key_start, long long int key_end, bool verbose,
-		int returned_keys[], void * returned_pointers[]) {
+int find_range(node * root, long long int key_start, long long int key_end, bool verbose, int returned_keys[], void * returned_pointers[]) {
 	int i, num_found;
 	num_found = 0;
 	node * n = find_leaf(root, key_start, verbose);
@@ -466,7 +464,7 @@ record * make_record(int value) {
 		exit(EXIT_FAILURE);
 	}
 	else {
-		new_record->value = value;
+		new_record->key = value;
 	}
 	return new_record;
 }
