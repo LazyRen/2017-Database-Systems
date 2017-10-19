@@ -1,5 +1,6 @@
 .DS_Store
-*.sublime-project
-Project1/
+*.sublime-projecit
+!Project1/
+Project1/*
 !Project1/project1.sql
 Project2/bpt_origin/
