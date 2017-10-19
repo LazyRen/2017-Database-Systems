@@ -167,4 +167,7 @@ node * delete(node * root, long long int key);
 void destroy_tree_nodes(node * root);
 node * destroy_tree(node * root);
 
+// User Defined Functions
+
+int open(char *pathname);
 #endif /* __BPT_H__*/
