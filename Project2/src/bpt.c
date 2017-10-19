@@ -1230,3 +1230,14 @@ node * destroy_tree(node * root) {
 	destroy_tree_nodes(root);
 	return NULL;
 }
+
+// User Defined Functions
+
+int open(char *pathname) {
+	FILE * fp;
+	fp = fopen(pathname, "a+");
+	if (fp == NULL) {
+		printf("Opening %s file failuire\n", pathname);
+		exit(EXIT_FAILURE);
+	}
+}
