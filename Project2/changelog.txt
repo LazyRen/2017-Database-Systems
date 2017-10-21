@@ -2,3 +2,7 @@
 1. struct "record" to 128 bytes and change all parameters in bpt.h & bpt.c accordingly
 2. modified just a bit of make_record(int value) func. to set key as val.
 	must work on to set key & val in near future.
+
+2017.10.21
+1. Constructing open_db() func doen
+2. Implement 'anonymous struct/union' into page structure.
