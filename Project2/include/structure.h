@@ -1,6 +1,17 @@
 #ifndef __STRUCTURE_H__
 #define __STRUCTURE_H__
-//structures for types of page
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <inttypes.h>
+#include <fcntl.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+//base structure for all pages
 #define page_header {\
 	off_t ppo;\
 	int is_leaf;\
@@ -35,6 +46,7 @@ typedef struct page {
 	};
 } page;
 
-
+//consider node(term used in orignal bpt) structure
+//as same as page structure.
 typedef struct page node;
 #endif

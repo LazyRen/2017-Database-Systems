@@ -3,15 +3,9 @@
 
 // Uncomment the line below if you are compiling on Windows.
 // #define WINDOWS
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
 //user included header
 #include "structure.h"
 #include "page.h"
-#include <inttypes.h>
-#include <fcntl.h>
-#include <string.h>
 
 #ifdef WINDOWS
 #define bool char
@@ -49,16 +43,17 @@ extern bool verbose_output;
 
 
 // FUNCTION PROTOTYPES
-node * find_leaf(node * root, int key, bool verbose);
-record * find(node * root, int key, bool verbose);
+node* find_leaf(node *root, off_t *page_loc, int64_t key, bool verbose);
+record* find(node *root, int64_t key, bool verbose);
+int cut(int length);
 
-record * make_record(char* value);
-node * make_node(void);
-node * make_leaf(void);
+// record* make_record(int64_t key, char* value, off_t writeat);
+node* make_node(off_t *writeat);
+node* make_leaf(off_t *leaf_loc);
 
-node * insert_into_leaf(node * leaf, int key, record * pointer);
-node * insert_into_leaf_after_splitting(node * root, node * leaf, int key, record * pointer);
-node * start_new_tree(int key, record * pointer);
-node * insert(node * root, int key, int value);
+node* insert_into_leaf(node *leaf, off_t writeat, int64_t key, char *value);
+node* insert_into_leaf_after_splitting(node *root, node *leaf, off_t writeat, int64_t key, record *pointer);
+node* start_new_tree(int64_t key, char *value);
+node* insert(node *root, int64_t key, char *value);
 
 #endif /* __BPT_H__*/
