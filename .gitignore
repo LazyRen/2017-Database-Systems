@@ -1,5 +1,6 @@
 .DS_Store
-*.sublime-projecit
+*.sublime-project
+*.sublime-workspace
 !Project1/
 Project1/*
 !Project1/project1.sql
