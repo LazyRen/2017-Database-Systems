@@ -37,8 +37,8 @@ test: $(TEST_TARGET)
 
 $(TEST_TARGET): $(TEST_OBJ)
 	$(foreach src, $(SRCS_FOR_TEST),$(shell $(CC) $(CFLAGS) -o $(src:.c=.o) -c $(src)))
-	make static_library
-	$(CC) $(CFLAGS) -o $@ $^ -L $(LIBS) -lbpt
+	make static_library_test
+	$(CC) $(CFLAGS) -o $@ $^ -L $(LIBS) -lbpt_origin
 
 clean:
 	-rm -f $(TARGET) $(TARGET_OBJ) $(OBJS_FOR_LIB) $(TEST_TARGET) $(TEST_OBJ) $(OBJS_FOR_TEST) $(LIBS)* 
@@ -48,3 +48,6 @@ library:
 
 static_library:
 	ar cr $(LIBS)libbpt.a $(OBJS_FOR_LIB)
+
+static_library_test:
+	ar cr $(LIBS)libbpt_origin.a $(OBJS_FOR_TEST)
