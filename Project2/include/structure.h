@@ -15,10 +15,12 @@
 #define page_header {\
 	off_t ppo;\
 	int is_leaf;\
-	int num_of_keys;\
+	int num_keys;\
 	char ph_reserved[104];\
-	off_t rspo;\
+	off_t expo;\
 }
+//off_t expo: extra page offset points to
+//leaf: right sibling, internal: leftmost child
 
 typedef struct record {
 	int64_t key;
@@ -33,7 +35,7 @@ typedef struct branch_factor {
 typedef struct header_page {
 	off_t fpo;
 	off_t rpo;
-	int64_t num_of_pages;
+	int64_t num_pages;
 	char reserved[4072];
 } header_page;
 

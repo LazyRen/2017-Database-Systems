@@ -146,8 +146,7 @@ node * insert_into_leaf_after_splitting(node * root, node * leaf, int key,
 node * insert_into_node(node * root, node * parent, 
 		int left_index, int key, node * right);
 node * insert_into_node_after_splitting(node * root, node * parent,
-										int left_index,
-		int key, node * right);
+										int left_index, int key, node * right);
 node * insert_into_parent(node * root, node * left, int key, node * right);
 node * insert_into_new_root(node * left, int key, node * right);
 node * start_new_tree(int key, record * pointer);
