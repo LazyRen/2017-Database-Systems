@@ -1,22 +1,17 @@
 #include "page.h"
 
 int db_fd = -1;
-header_page* headerP = NULL;
-page* rootP = NULL;
 
 int open_db(char *pathname) {
 	int temp;
 	db_fd = open(pathname, O_RDWR | O_CREAT | O_EXCL | O_SYNC, 0776);
 	headerP = (header_page*)calloc(1, PAGESIZE);
-	rootP = (page*)calloc(1, PAGESIZE);
 
 	if (db_fd > 0) {
 		printf("DB File successfully created\n");
-		headerP->rpo = SEEK_SET + PAGESIZE; headerP->num_of_pages = 2;
-		rootP->ppo = SEEK_SET; rootP->is_leaf = 1;
+		headerP->num_pages = 1;
 
 		pwrite(db_fd, headerP, PAGESIZE, SEEK_SET);
-		pwrite(db_fd, rootP, PAGESIZE, SEEK_SET + PAGESIZE);
 
 
 		return 0;
@@ -28,11 +23,6 @@ int open_db(char *pathname) {
 		temp = pread(db_fd, headerP, PAGESIZE, SEEK_SET);
 		if (temp < PAGESIZE) {
 			printf("Failed to read header_page\n");
-			exit(EXIT_FAILURE);
-		}
-		temp = pread(db_fd, rootP, PAGESIZE, SEEK_SET + headerP->rpo);
-		if (temp < PAGESIZE) {
-			printf("Failed to read root_page \n");
 			exit(EXIT_FAILURE);
 		}
 
@@ -56,25 +46,30 @@ page* open_page(off_t po)
 }
 
 //get_free_page를 불러오는 page의 npo도 변경해주어야한다!! - 미완
-page* get_free_page(off_t *page_loc)
+page* get_free_page(off_t ppo, off_t *page_loc, int is_leaf)
 {
 	int temp;
 	off_t fpo = headerP->fpo;
-
-	if (fpo == 0)
-		return NULL;
 	page* new_page = (page*)malloc(sizeof(PAGESIZE));
-	temp = pread(db_fd, new_page, PAGESIZE, (*page_loc = SEEK_SET + fpo));
-	if (temp < PAGESIZE) {
-		printf("Failed to read page from get_free_page()\n");
-		return NULL;
+	if (fpo == 0) {//no free page avail. Make new page
+		new_page->ppo = ppo; new_page->is_leaf = is_leaf;
+		pwrite(db_fd, new_page, PAGESIZE, (*page_loc = SEEK_END));
+		headerP->num_pages++;
+		pwrite(db_fd, headerP, PAGESIZE, SEEK_SET);
 	}
-	fpo = new_page->ppo;
-	new_page->ppo = 0;
-	//need to be more specific
-	pwrite(db_fd, new_page, PAGESIZE, SEEK_SET + headerP->fpo);
-	headerP->fpo = fpo;
-	//need to be more specific
-	pwrite(db_fd, headerP, PAGESIZE, SEEK_SET);
+	else {//free page is avail.
+		temp = pread(db_fd, new_page, PAGESIZE, SEEK_SET + fpo);
+		*page_loc = fpo; //disk loc. of read page
+		if (temp < PAGESIZE) {
+			printf("Failed to read page from get_free_page()\n");
+			return NULL;
+		}
+		fpo = new_page->ppo;
+		new_page->ppo = ppo; //set ppo to calling page
+		new_page->is_leaf = is_leaf;
+		pwrite(db_fd, new_page, PAGESIZE, SEEK_SET + headerP->fpo);
+		headerP->fpo = fpo;
+		pwrite(db_fd, headerP, PAGESIZE, SEEK_SET);
+	}
 	return new_page;
 }
