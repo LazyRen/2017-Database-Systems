@@ -51,3 +51,9 @@ static_library:
 
 static_library_test:
 	ar cr $(LIBS)libbpt_origin.a $(OBJS_FOR_TEST)
+rmdb:
+	rm -f ./mydb
+re: 
+	make clean
+	make rmdb
+	make
