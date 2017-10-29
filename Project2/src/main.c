@@ -6,7 +6,8 @@ int main(int argc, char ** argv) {
 	char value[300];
 	off_t testoffset;
 	page *tpage;
-
+	printf("headerP size: %llu\n", sizeof(header_page));
+	printf("Page size: %llu\n", sizeof(page));
 	if (argc == 1)
 		temp = open_db("./mydb");
 	else {
