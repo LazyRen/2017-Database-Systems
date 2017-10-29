@@ -45,7 +45,7 @@ typedef struct page {
 	struct page_header;
 	union {
 		branch_factor entries[248];
-		record records[31];
+		record records[32];
 	};
 } page;
 

@@ -29,7 +29,7 @@ int open_db(char *pathname) {
 			exit(EXIT_FAILURE);
 		}
 		if (headerP->rpo != 0) {
-			rootP = (page *)malloc(PAGESIZE);
+			rootP = (page *)calloc(1, PAGESIZE);
 			temp = pread(db_fd, rootP, PAGESIZE, headerP->rpo);
 			if (temp < PAGESIZE) {
 				printf("%lld\n", headerP->rpo);
@@ -53,7 +53,7 @@ int open_db(char *pathname) {
 page* open_page(off_t po)
 {
 	int temp;
-	page* new_page = (page*)malloc(sizeof(PAGESIZE));
+	page* new_page = (page*)calloc(1, PAGESIZE);
 	temp = pread(db_fd, new_page, PAGESIZE, po);
 	if (temp < PAGESIZE) {
 		printf("Failed to read page from open_page()\n");
@@ -69,7 +69,7 @@ page* get_free_page(off_t ppo, off_t *page_loc, int is_leaf)
 {
 	int temp = 0;
 	off_t fpo = headerP->fpo;
-	page* new_page = (page*)calloc(1, sizeof(PAGESIZE));
+	page* new_page = (page*)calloc(1, PAGESIZE);
 	if (fpo == 0) {//no free page avail. Make new page
 		new_page->ppo = ppo; new_page->is_leaf = is_leaf;
 		*page_loc = lseek(db_fd, 0, SEEK_END);
@@ -80,7 +80,11 @@ page* get_free_page(off_t ppo, off_t *page_loc, int is_leaf)
 		}
 		
 		headerP->num_pages++;
-		pwrite(db_fd, headerP, PAGESIZE, SEEK_SET);
+		temp = pwrite(db_fd, headerP, PAGESIZE, SEEK_SET);
+		if (temp < PAGESIZE) {
+			printf("Failed to update headerP from get_free_page()\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 	else {//free page is avail.
 		temp = pread(db_fd, new_page, PAGESIZE, fpo);
