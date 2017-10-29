@@ -1,17 +1,33 @@
 #include "page.h"
-
+#include <time.h>
 int main(int argc, char ** argv) {
 	int64_t key, temp;
 	char instruction;
 	char value[300];
 	off_t testoffset;
 	page *tpage;
-	printf("headerP size: %llu\n", sizeof(header_page));
-	printf("Page size: %llu\n", sizeof(page));
+	bool automate = true;
+
 	if (argc == 1)
 		temp = open_db("./mydb");
 	else {
 		temp = open_db(argv[1]);
+	}
+
+	if (headerP->num_pages == 1 && automate) {
+		printf("hello\n");
+		int inputnum;
+		char c = 'i';
+		int temp, toWrite;
+		printf("inputnum: ");
+		scanf("%d", &inputnum);
+		for (int i = 1; i <= inputnum; i++) {
+			sprintf(value, "%d", i);
+			printf("%s\n", value);
+			insert(i, value);
+			find_and_print(i);
+			printf("\n");
+		}
 	}
 	while(1) {
 		printf("i / f / q\n");
