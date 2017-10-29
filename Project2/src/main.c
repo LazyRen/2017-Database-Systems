@@ -3,26 +3,24 @@
 int main(int argc, char ** argv) {
 	int64_t key, temp;
 	char instruction;
-	char *input_file;
 	char value[300];
+	off_t testoffset;
+	page *tpage;
 
-	if (argc == 1) {
-	temp = open_db("./mydb");
-	if (temp != 0)
-		printf("failed\n");
-	} else {
-		temp = open_db(input_file);
-	if (temp != 0)
-		printf("failed\n");
+	if (argc == 1)
+		temp = open_db("./mydb");
+	else {
+		temp = open_db(argv[1]);
 	}
 	while(1) {
-		scanf("%c", &instruction);
+		printf("i / f / q\n");
+		instruction = fgetc(stdin);
 		switch(instruction) {
 			case 'i':
 				scanf("%lld %s", &key, value);
 				while(getchar() != '\n');
 				insert(key, value);
-				printf("insertiong finished\n");
+				printf("key: %lld\n\n", key);
 				break;
 			case 'f':
 				scanf("%lld", &key);
@@ -32,6 +30,7 @@ int main(int argc, char ** argv) {
 			case 'q':
 				return EXIT_SUCCESS;
 			default:
+				while(getchar() != '\n');
 				printf("No such Instruction\n");
 		}
 	}
