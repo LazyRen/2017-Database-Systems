@@ -225,14 +225,23 @@ void insert_into_leaf_after_splitting(node *leaf, off_t leaf_loc,
 	//change right sibling pointer
 	new_leaf->expo = leaf->expo;
 	leaf->expo = new_leaf_loc;
-	
+
+	if (debugging) {
+		printf("leaf\n");
+		for (int t = 0; t < leaf->num_keys; t++)
+			printf("[%lld:%s]", leaf->records[t].key, leaf->records[t].value);
+		printf("\nnew_leaf\n");
+		for (int t = 0; t < new_leaf->num_keys; t++)
+			printf("[%lld:%s]", new_leaf->records[t].key, new_leaf->records[t].value);
+		printf("\n");
+	}
 	for (i = leaf->num_keys; i < leaf_order; i++) {
 		leaf->records[i].key = 0;
-		memset(leaf->records[i].value, '\0', 120);
+		// memset(leaf->records[i].value, '\0', sizeof(char) * 120);
 	}
 	for (i = new_leaf->num_keys; i < leaf_order; i++) {
 		new_leaf->records[i].key = 0;
-		memset(new_leaf->records[i].value, '\0', 120);
+		// memset(new_leaf->records[i].value, '\0', sizeof(char) * 120);
 	}
 
 	if (debugging) {
