@@ -2,8 +2,8 @@
 
 int internal_order = 249;//# of keys in internal page. actual pointer is +1.
 int leaf_order = 32;
-bool verbose = false; //set it true to see how things are working.
-bool debugging = false;//more info. for debugging
+bool verbose = true; //set it true to see how things are working.
+bool debugging = true;//more info. for debugging
 
 /* Finds the record under a given key and prints an
  * appropriate message to stdout.
@@ -12,7 +12,6 @@ void find_and_print(int64_t key) {
 	char *val = find(key);
 	if (val == NULL) {
 		printf("Record not found under key: %lld\n", key);
-		exit(EXIT_FAILURE);
 	}
 	else {
 		printf("key: %lld, value: %s\n", key, val);
@@ -120,13 +119,21 @@ int cut(int length) {
 
 int get_left_index(node *parent, int64_t key) {
 	int left_index = 0;
-
-	//indicate to use expo pointer
-	if (key < parent->records[0].key)
-		return -1;
-	while (left_index < parent->num_keys - 1 && 
-			parent->records[left_index + 1].key <= key)
-		left_index++;
+	if (parent->is_leaf) {
+		//indicate to use expo pointer
+		if (key < parent->records[0].key)
+			return -1;
+		while (left_index < parent->num_keys - 1 && 
+				parent->records[left_index + 1].key <= key)
+			left_index++;
+	}
+	else {
+		if (key < parent->entries[0].key)
+			return -1;
+		while (left_index < parent->num_keys - 1 && 
+				parent->entries[left_index + 1].key <= key)
+			left_index++;
+	}
 	if (verbose)
 		printf("left index: %d\n", left_index);
 	return left_index;
@@ -166,8 +173,6 @@ void insert_into_leaf(node *leaf, off_t leaf_loc, int64_t key, char *value) {
 		}
 		printf("\n");
 	}
-
-	free(leaf);
 }
 
 /* Inserts a new key and pointer
@@ -254,6 +259,8 @@ void insert_into_leaf_after_splitting(node *leaf, off_t leaf_loc,
 	pwrite(db_fd, new_leaf, PAGESIZE, new_leaf_loc);
 
 	insert_into_parent(leaf, leaf_loc, new_key, new_leaf, new_leaf_loc);
+
+	free(new_leaf);
 }
 
 /* Inserts a new key and pointer to a node
@@ -357,6 +364,8 @@ void insert_into_node_after_splitting(node *old_node, off_t old_node_loc,
 	 */
 
 	insert_into_parent(old_node, old_node_loc, k_prime, new_node, new_node_loc);
+
+	free(new_node);
 }
 
 /* Inserts a new node (leaf or internal node) into the B+ tree.
@@ -365,7 +374,7 @@ void insert_into_node_after_splitting(node *old_node, off_t old_node_loc,
 void insert_into_parent(node *left, off_t left_loc, int64_t key, 
 						  node *right ,off_t right_loc) {
 	if (debugging) {
-		printf("insert_into_parent called\n");
+		printf("insert_into_parent called\nparent_loc: %lld\n", left->ppo);
 		printf("left_loc: %lld\nkey: %lld\nright_loc: %lld\n", left_loc/4096, key, right_loc/4096);
 	}
 	int left_index;
@@ -375,12 +384,11 @@ void insert_into_parent(node *left, off_t left_loc, int64_t key,
 
 	if (left->ppo == SEEK_SET) {
 		rootP = insert_into_new_root(left, left_loc, key, right, right_loc);
-		free(left);
-		free(right);
 		return;
 	}
 
 	parent = open_page(left->ppo);
+	if (debugging)
 	if (parent == NULL) {
 		perror("Failed to find parent - insert_into_parent()");
 		exit(EXIT_FAILURE);
@@ -396,23 +404,21 @@ void insert_into_parent(node *left, off_t left_loc, int64_t key,
 
 	left_index = get_left_index(parent, left->entries[0].key);
 	//if return value is '-1' offset is located at addr 120-128(expo)
+	if (debugging) {
+		printf("left key: %lld\n", left->entries[0].key);
+	}
 
 	/* Simple case: the new key fits into the node. 
 	 */
-
-	if (parent->num_keys < internal_order - 1) {
+	if (parent->num_keys < internal_order - 1)
 		insert_into_node(parent, left->ppo, left_index, key, right, right_loc);
-	}
 
 	/* Harder case:  split a node in order 
 	 * to preserve the B+ tree properties.
 	 */
-
 	else 
 		insert_into_node_after_splitting(parent, left->ppo, left_index, key, right, right_loc);
 
-	free(left);
-	free(right);
 	free(parent);
 }
 
@@ -532,5 +538,7 @@ int insert(int64_t key, char *value) {
 	 */
 	else
 		insert_into_leaf_after_splitting(leaf, leaf_loc, key, value);
+
+	free(leaf);
 	return 0;
 }
