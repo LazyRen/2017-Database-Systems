@@ -19,7 +19,7 @@ void insert_into_leaf(node *leaf, off_t leaf_loc, int64_t key, char *value);
 void insert_into_leaf_after_splitting(node *leaf, off_t leaf_loc, 
 										int64_t key, char *value);
 void insert_into_node(node *parent, off_t parent_loc, 
-						int left_index, int64_t key, off_t right_loc);
+						int left_index, int64_t key, node *right, off_t right_loc);
 void insert_into_node_after_splitting(node *old_node, off_t old_node_loc,
 										int left_index, int64_t key, node *right, off_t right_loc);
 void insert_into_parent(node *left, off_t left_loc, int64_t key, 

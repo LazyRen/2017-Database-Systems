@@ -23,6 +23,7 @@ void find_and_print(int64_t key) {
 node* find_leaf(off_t *page_loc, int64_t key) {
 	int i = 0;
 	node *c = open_page(headerP->rpo);
+	off_t tpo;
 	off_t npo = headerP->rpo;
 
 	if (c == NULL) {
@@ -32,7 +33,7 @@ node* find_leaf(off_t *page_loc, int64_t key) {
 	}
 	while (!c->is_leaf) {
 		if (verbose) {
-			printf("Internal page at: %lld\n", npo);
+			printf("Internal page at: %lld\n", npo/4096);
 			printf("# of keys: %d\n", c->num_keys);
 			if (debugging) {
 				printf("[");
@@ -55,12 +56,15 @@ node* find_leaf(off_t *page_loc, int64_t key) {
 		if (npo == 0) {
 			return NULL;
 		}
-		else
+		else {
+			tpo = c->entries[i].npo;
+			free(c);
 			c = (node *)open_page(c->entries[i].npo);
+		}
 	}
 	*page_loc = npo;
 	if (verbose) {
-		printf("leaf page at: %lld\n", *page_loc);
+		printf("leaf page at: %lld\n", *page_loc/4096);
 		printf("# of keys: %d\n", c->num_keys);
 		if (debugging) {
 			printf("Leaf [");
@@ -135,7 +139,7 @@ int get_left_index(node *parent, int64_t key) {
  */
 void insert_into_leaf(node *leaf, off_t leaf_loc, int64_t key, char *value) {
 	if (debugging)
-		printf("insert_into_leaf(%lld: %lld)\n", key, leaf_loc);
+		printf("insert_into_leaf(%lld: %lld)\n", key, leaf_loc/4096);
 	int i, insertion_point, temp;
 
 	insertion_point = 0;
@@ -157,14 +161,11 @@ void insert_into_leaf(node *leaf, off_t leaf_loc, int64_t key, char *value) {
 		printf("%s\n", strerror(errno));
 	}
 	if(verbose) {
-		node * testP;
-		testP = open_page(leaf_loc);
-		printf("# of keys: %d\n", testP->num_keys);
-		for (int t = 0; t < testP->num_keys; t++) {
-			printf("[%lld:%s] ", testP->records[t].key, testP->records[t].value);
+		printf("# of keys: %d\n", leaf->num_keys);
+		for (int t = 0; t < leaf->num_keys; t++) {
+			printf("[%lld:%s] ", leaf->records[t].key, leaf->records[t].value);
 		}
 		printf("\n");
-		free(testP);
 	}
 
 	free(leaf);
@@ -178,7 +179,7 @@ void insert_into_leaf(node *leaf, off_t leaf_loc, int64_t key, char *value) {
 void insert_into_leaf_after_splitting(node *leaf, off_t leaf_loc, 
 										int64_t key, char *value) {
 	if (debugging)
-		printf("insert_into_leaf_after_splitting(%lld, %lld)\n", key, leaf_loc);
+		printf("insert_into_leaf_after_splitting(%lld, %lld)\n", key, leaf_loc/4096);
 	node *new_leaf;
 	int64_t temp_keys[33], new_key;
 	char temp_values[33][120];
@@ -186,7 +187,7 @@ void insert_into_leaf_after_splitting(node *leaf, off_t leaf_loc,
 	off_t new_leaf_loc;
 	new_leaf = get_free_page(leaf->ppo, &new_leaf_loc, 1);
 	if (debugging)
-		printf("for splitting leaf: new_leaf at %lld\n", new_leaf_loc);
+		printf("for splitting leaf: new_leaf at %lld\n", new_leaf_loc/4096);
 
 	insertion_index = 0;
 	while (insertion_index < leaf_order - 1 && leaf->records[insertion_index].key < key)
@@ -226,22 +227,15 @@ void insert_into_leaf_after_splitting(node *leaf, off_t leaf_loc,
 	new_leaf->expo = leaf->expo;
 	leaf->expo = new_leaf_loc;
 
-	if (debugging) {
-		printf("leaf\n");
-		for (int t = 0; t < leaf->num_keys; t++)
-			printf("[%lld:%s]", leaf->records[t].key, leaf->records[t].value);
-		printf("\nnew_leaf\n");
-		for (int t = 0; t < new_leaf->num_keys; t++)
-			printf("[%lld:%s]", new_leaf->records[t].key, new_leaf->records[t].value);
-		printf("\n");
-	}
 	for (i = leaf->num_keys; i < leaf_order; i++) {
 		leaf->records[i].key = 0;
 		// memset(leaf->records[i].value, '\0', sizeof(char) * 120);
+		// strcpy(leaf->records[i].value, "\0");
 	}
 	for (i = new_leaf->num_keys; i < leaf_order; i++) {
 		new_leaf->records[i].key = 0;
 		// memset(new_leaf->records[i].value, '\0', sizeof(char) * 120);
+		// strcpy(new_leaf->records[i].value, "\0");
 	}
 
 	if (debugging) {
@@ -268,7 +262,7 @@ void insert_into_leaf_after_splitting(node *leaf, off_t leaf_loc,
  * without violating the B+ tree properties.
  */
 void insert_into_node(node *parent, off_t parent_loc, 
-                       int left_index, int64_t key, off_t right_loc) {
+                       int left_index, int64_t key, node *right, off_t right_loc) {
 	int i;
 
 	for (i = parent->num_keys; i > left_index; i--) {
@@ -279,6 +273,13 @@ void insert_into_node(node *parent, off_t parent_loc,
 	parent->entries[left_index + 1].npo = right_loc;
 	parent->num_keys++;
 	pwrite(db_fd, parent, PAGESIZE, parent_loc);
+	right->ppo = parent_loc;
+	pwrite(db_fd, right, PAGESIZE, right_loc);
+
+	if (debugging) {
+		printf("insert_into_node called\n");
+		printf("parent at %lld with %d keys\n", parent_loc/4096, parent->num_keys);
+	}
 	return;
 }
 
@@ -363,7 +364,7 @@ void insert_into_parent(node *left, off_t left_loc, int64_t key,
 						  node *right ,off_t right_loc) {
 	if (debugging) {
 		printf("insert_into_parent called\n");
-		printf("left_loc: %lld\nkey: %lld\nright_loc: %lld\n", left_loc, key, right_loc);
+		printf("left_loc: %lld\nkey: %lld\nright_loc: %lld\n", left_loc/4096, key, right_loc/4096);
 	}
 	int left_index;
 	node *parent;
@@ -372,6 +373,8 @@ void insert_into_parent(node *left, off_t left_loc, int64_t key,
 
 	if (left->ppo == SEEK_SET) {
 		rootP = insert_into_new_root(left, left_loc, key, right, right_loc);
+		free(left);
+		free(right);
 		return;
 	}
 
@@ -395,8 +398,9 @@ void insert_into_parent(node *left, off_t left_loc, int64_t key,
 	/* Simple case: the new key fits into the node. 
 	 */
 
-	if (parent->num_keys < internal_order - 1)
-		insert_into_node(parent, left->ppo,left_index, key, right_loc);
+	if (parent->num_keys < internal_order - 1) {
+		insert_into_node(parent, left->ppo,left_index, key, right, right_loc);
+	}
 
 	/* Harder case:  split a node in order 
 	 * to preserve the B+ tree properties.
@@ -416,10 +420,9 @@ void insert_into_parent(node *left, off_t left_loc, int64_t key,
  */
 node* insert_into_new_root(node *left, off_t left_loc, int64_t key, 
 						   node *right, off_t right_loc) {
-	if (debugging)
-		printf("insert_into_new_root called\n");
 	off_t root_loc;
 	node *root = get_free_page(SEEK_SET, &root_loc, 0);
+	
 	root->ppo = SEEK_SET;
 	root->entries[0].key = key;
 	root->expo = left_loc;
@@ -433,6 +436,14 @@ node* insert_into_new_root(node *left, off_t left_loc, int64_t key,
 
 	headerP->rpo = root_loc;
 	pwrite(db_fd, headerP, PAGESIZE, SEEK_SET);
+
+	if (debugging) {
+		printf("insert_into_new_root called\n");
+		printf("new root at: %lld with %d keys\n", root_loc/4096, root->num_keys);
+		for (int t = 0; t < root->num_keys; t++)
+			printf("%lld ", root->entries[t].key);
+		printf("\n");
+	}
 	return root;
 }
 
@@ -455,7 +466,7 @@ void start_new_tree(int64_t key, char *value) {
 	pwrite(db_fd, headerP, PAGESIZE, SEEK_SET);
 
 	if (verbose)
-		printf("new root saved at : %lld\n", root_loc);
+		printf("new root saved at : %lld\n", root_loc/4096);
 	return;
 }
 
@@ -506,22 +517,18 @@ int insert(int64_t key, char *value) {
 
 	leaf = find_leaf(&leaf_loc, key);
 	if (verbose) {
-		printf("found leaf at : %lld\n", leaf_loc);
+		printf("found leaf at : %lld\n", leaf_loc/4096);
 	}
 
 	/* Case: leaf has room for key and pointer.
 	 */
 
-	if (leaf->num_keys < leaf_order - 1) {
+	if (leaf->num_keys < leaf_order - 1)
 		insert_into_leaf(leaf, leaf_loc, key, value);
-		return 0;
-	}
-
 
 	/* Case:  leaf must be split.
 	 */
-
-	insert_into_leaf_after_splitting(leaf, leaf_loc, key, value);
-	free(leaf);
+	else
+		insert_into_leaf_after_splitting(leaf, leaf_loc, key, value);
 	return 0;
 }
