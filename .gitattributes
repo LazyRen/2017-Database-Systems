@@ -1,4 +1,4 @@
 *.db filter=lfs diff=lfs merge=lfs -text
 DATA1[[:space:]]||[[:space:]]last_test.db filter=lfs diff=lfs merge=lfs -text
-DATA1 filter=lfs diff=lfs merge=lfs -text
 last_test.db filter=lfs diff=lfs merge=lfs -text
+DATA1 filter=lfs diff=lfs merge=lfs -text
