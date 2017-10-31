@@ -1035,7 +1035,7 @@ node * coalesce_nodes(node * root, node * n, node * neighbor, int neighbor_index
 		}
 		neighbor->pointers[order - 1] = n->pointers[order - 1];
 	}
-
+	
 	root = delete_entry(root, n->parent, k_prime, n);
 	free(n->keys);
 	free(n->pointers);

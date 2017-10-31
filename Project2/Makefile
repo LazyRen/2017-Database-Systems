@@ -29,7 +29,6 @@ all: $(TARGET)
 
 $(TARGET): $(TARGET_OBJ)
 	$(foreach src, $(SRCS_FOR_LIB),$(shell $(CC) $(CFLAGS) -o $(src:.c=.o) -c $(src)))
-	# $(CC) $(CFLAGS) -o $(OBJS_FOR_LIB) -c $(SRCS_FOR_LIB)
 	make static_library
 	$(CC) $(CFLAGS) -o $@ $^ -L $(LIBS) -lbpt
 
