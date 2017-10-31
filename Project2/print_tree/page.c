@@ -5,20 +5,7 @@ int db_fd = -1;
 int open_db(char *pathname) {
 	int temp;
 	off_t test;
-	db_fd = open(pathname, O_RDWR | O_CREAT | O_EXCL | O_SYNC, 0776);
 	headerP = (header_page*)calloc(1, PAGESIZE);
-
-	if (db_fd > 0) {
-		printf("DB File successfully created\n");
-		headerP->num_pages = 1;
-		temp = pwrite(db_fd, headerP, PAGESIZE, SEEK_SET);
-		if (temp < PAGESIZE) {
-			printf("Failed to write header_page\n");
-			exit(EXIT_FAILURE);
-		}
-
-		return 0;
-	}
 
 	db_fd = open(pathname, O_RDWR | O_SYNC);
 	if (db_fd > 0) {
@@ -103,17 +90,6 @@ page* get_free_page(off_t ppo, off_t *page_loc, int is_leaf)
 	return new_page;
 }
 
-void add_free_page(off_t page_loc)
-{
-	page *new_free_page = calloc(1, PAGESIZE);
-	new_free_page->ppo = headerP->fpo;
-	pwrite(db_fd, new_free_page, PAGESIZE, page_loc);
-
-	headerP->fpo = page_loc;
-	pwrite(db_fd, headerP, PAGESIZE, 0);
-	free(new_free_page);
-}
-
 void print_page_info(page* cur_page, off_t po, int64_t *total_keys)
 {
 	printf("%s page at %lld - %lld\n", cur_page->is_leaf ? "leaf" : "internal", cur_page->ppo/4096, po/4096);
@@ -135,10 +111,10 @@ void print_page_info(page* cur_page, off_t po, int64_t *total_keys)
 void print_tree() {
 	printf("\n\n\n");
 	queue myQ;
-	node *cur_page, *heightpage, *tmppage;
-	off_t parent = 0, freepage, cur;
+	node *cur_page, *heightpage;
+	off_t parent = 0, cur;
 	int64_t total_keys = 0;
-	int height = 0, num_internals = 0, num_fpage = 0;
+	int height = 0, num_internals = 0;
 
 	init_queue(&myQ);
 	printf("fpo: %lld\nrpo: %lld\n", headerP->fpo/4096, headerP->rpo/4096);
@@ -148,14 +124,6 @@ void print_tree() {
 		printf("Empty Tree\n");
 		return;
 	}
-
-	freepage = headerP->fpo;
-	while (freepage != 0) {
-		num_fpage++;
-		tmppage = open_page(freepage);
-		freepage = tmppage->ppo;
-	}
-
 	heightpage = open_page(headerP->rpo);
 	while(!heightpage->is_leaf) {
 		height++;
@@ -183,7 +151,7 @@ void print_tree() {
 		free(cur_page);
 	}
 
-	printf("# of internal pages: %d, # of leaf pages: %lld, # of free pages: %d\n", num_internals, headerP->num_pages - num_internals - num_fpage - 1, num_fpage);
+	printf("# of internal pages: %d, # of leaf pages: %lld\n", num_internals, headerP->num_pages - num_internals - 1);
 	printf("total keys: %lld\n", total_keys);
 }
 

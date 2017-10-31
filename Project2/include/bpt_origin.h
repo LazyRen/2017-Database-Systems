@@ -155,6 +155,7 @@ node * insert( node * root, int key, int value );
 // Deletion.
 
 int get_neighbor_index( node * n );
+node * remove_entry_from_node(node * n, int key, node * pointer);
 node * adjust_root(node * root);
 node * coalesce_nodes(node * root, node * n, node * neighbor,
 					  int neighbor_index, int k_prime);
