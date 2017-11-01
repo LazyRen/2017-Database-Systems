@@ -9,7 +9,7 @@ int open_db(char *pathname) {
 	headerP = (header_page*)calloc(1, PAGESIZE);
 
 	if (db_fd > 0) {
-		printf("DB File successfully created\n");
+		// printf("DB File successfully created\n");
 		headerP->num_pages = 1;
 		temp = pwrite(db_fd, headerP, PAGESIZE, SEEK_SET);
 		if (temp < PAGESIZE) {
@@ -22,7 +22,7 @@ int open_db(char *pathname) {
 
 	db_fd = open(pathname, O_RDWR | O_SYNC);
 	if (db_fd > 0) {
-		printf("Existing DB File has been successfully opened\n");
+		// printf("Existing DB File has been successfully opened\n");
 		temp = pread(db_fd, headerP, PAGESIZE, SEEK_SET);
 		if (temp < PAGESIZE) {
 			printf("Failed to read header_page\n");
