@@ -3,7 +3,7 @@
 int internal_order = 249;//# of keys in internal page. actual pointer is +1.
 int leaf_order = 32;
 bool verbose = false; //set it true to see how things are working.
-bool debugging = true;//more info. for debugging
+bool debugging = false;//more info. for debugging
 
 /* Finds the record under a given key and prints an
  * appropriate message to stdout.
@@ -83,14 +83,12 @@ char* find(int64_t key) {
 	int i = 0;
 	off_t leaf_loc;
 	char *val;
-	if (rootP != NULL) {
-		free(rootP);
-		rootP = NULL;
+	if (rootP == NULL) {
+		if (headerP->rpo == 0)
+			return NULL;
+		else
+			rootP = open_page(headerP->rpo);
 	}
-	if (headerP->rpo == 0)
-		return NULL;
-	else
-		rootP = open_page(headerP->rpo);
 
 	node *c = find_leaf(&leaf_loc, key);
 	if (c == NULL) return NULL;
@@ -474,8 +472,6 @@ void start_new_tree(int64_t key, char *value) {
 
 	if (verbose)
 		printf("new root saved at : %lld\n", root_loc/4096);
-	free(rootP);
-	rootP = NULL;
 	return;
 }
 
@@ -500,17 +496,15 @@ int insert(int64_t key, char *value) {
 	/* Case: the tree does not exist yet.
 	 * Start a new tree.
 	 */
-	if (rootP != NULL) {
-		free(rootP);
-		rootP = NULL;
+	if (rootP == NULL) {
+		if (headerP->rpo == 0) {
+			start_new_tree(key, value);
+			return 0;
+		}
+		else
+			rootP = open_page(headerP->rpo);
 	}
 
-	if (headerP->rpo == 0) {
-		start_new_tree(key, value);
-		return 0;
-	}
-	else
-		rootP = open_page(headerP->rpo);
 
 	/* The current implementation ignores
 	 * duplicates.
@@ -592,8 +586,11 @@ void adjust_root() {
 		free(rootP);
 		rootP = NULL;
 	}
-	if (headerP->rpo == 0)
+	if (headerP->rpo == 0) {
+		printf("root not found from adjust_root()\n");
+		exit(EXIT_FAILURE);
 		return;
+	}
 	else
 		rootP = open_page(headerP->rpo);
 
