@@ -333,13 +333,13 @@ void insert_into_node_after_splitting(node *old_node, off_t old_node_loc,
 		old_node->num_keys++;
 	}
 	new_node->expo = temp_npo[split];
-	k_prime = temp_keys[split + 1];
+	k_prime = temp_keys[split];
+	new_node->num_keys = 0;
 	for (i = split + 1, j = 0; i < internal_order; i++, j++) {
 		new_node->entries[j].npo = temp_npo[i];
 		new_node->entries[j].key = temp_keys[i];
 		new_node->num_keys++;
 	}
-	printf("old_node #: %d new_node #: %d\n", old_node->num_keys, new_node->num_keys);
 	pwrite(db_fd, old_node, PAGESIZE, old_node_loc);
 	pwrite(db_fd, new_node, PAGESIZE, new_node_loc);
 
@@ -573,33 +573,23 @@ int get_neighbor_index(node *child_page, off_t child_loc, off_t *neighbor_loc) {
 
 	// Error state.
 	printf("Search for nonexistent neighbor in parent.\n");
-	printf("Node at:  %lld - %lld\n", child_page->ppo, child_loc);
+	printf("Node at:  %lld - %lld\n", child_page->ppo/4096, child_loc/4096);
 	exit(EXIT_FAILURE);
 }
 
-void adjust_root() {
-	if (debugging)
+void adjust_root(node *root) {
+	if (debugging) {
 		printf("adjust_root called\n");
+	}
 	node *new_root;
 	off_t old_root_loc;
-	if (rootP != NULL) {
-		free(rootP);
-		rootP = NULL;
-	}
-	if (headerP->rpo == 0) {
-		printf("root not found from adjust_root()\n");
-		exit(EXIT_FAILURE);
-		return;
-	}
-	else
-		rootP = open_page(headerP->rpo);
 
 	/* Case: nonempty root.
 	 * Key and pointer have already been deleted,
 	 * so nothing to be done.
 	 */
 
-	if (rootP->num_keys > 0) {
+	if (root->num_keys > 0) {
 		if (debugging)
 			printf("no need to adjust root\n");
 		return;
@@ -613,17 +603,17 @@ void adjust_root() {
 	// the first (only) child
 	// as the new root.
 
-	if (!rootP->is_leaf) {
-		headerP->rpo = rootP->expo;
+	if (!root->is_leaf) {
+		headerP->rpo = root->expo;
 		pwrite(db_fd, headerP, PAGESIZE, 0);
 
-		new_root = open_page(rootP->expo);
+		new_root = open_page(headerP->rpo);
 		new_root->ppo = SEEK_SET;
 
 		free(rootP);
 		add_free_page(old_root_loc);
 		rootP = new_root;
-		pwrite(db_fd, rootP, PAGESIZE, headerP->rpo);
+		pwrite(db_fd, new_root, PAGESIZE, headerP->rpo);
 	}
 
 	// If it is a leaf (has no children),
@@ -642,9 +632,12 @@ void adjust_root() {
 	return;
 }
 
-void remove_entry_from_node(node *cur_page, off_t page_loc, int64_t key) {
-
-	int i, num_pointers;
+node* remove_entry_from_node(node *cur_page, off_t page_loc, int64_t key) {
+	if (debugging) {
+		printf("remove_entry_from_node\n");
+		printf("delete %lld from %lld\n", key, page_loc/4096);
+	}
+	int i;
 
 	// Remove the key and shift other keys accordingly.
 	if (cur_page->is_leaf) {
@@ -678,14 +671,14 @@ void remove_entry_from_node(node *cur_page, off_t page_loc, int64_t key) {
 		}
 	}
 	else {
-		for (i = cur_page->num_keys ; i < internal_order - 1; i++) {
+		for (i = cur_page->num_keys; i < internal_order - 1; i++) {
 			cur_page->entries[i].key = 0;
 			cur_page->entries[i].npo = 0;
 		}
 	}
 
 	pwrite(db_fd, cur_page, PAGESIZE, page_loc);
-	return;
+	return cur_page;
 }
 
 /* Coalesces a node that has become
@@ -695,7 +688,10 @@ void remove_entry_from_node(node *cur_page, off_t page_loc, int64_t key) {
  * without exceeding the maximum.
  */
 void coalesce_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighbor_loc, int neighbor_index, int64_t k_prime) {
-
+	if (debugging) {
+		printf("coalesce_nodes\n");
+		printf("cur at %lld with neighbor at %lld index %d k_prime: %lld\n", page_loc/4096, neighbor_loc/4096, neighbor_index, k_prime);
+	}
 	int i, j, neighbor_insertion_index, n_end;
 	node *tmp, *parent;
 	off_t tmp_loc;
@@ -728,11 +724,9 @@ void coalesce_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighb
 	if (!cur_page->is_leaf) {
 		/* Append k_prime.
 		 */
-
 		neighbor->entries[neighbor_insertion_index].key = k_prime;
 		neighbor->entries[neighbor_insertion_index].npo = cur_page->expo;
 		neighbor->num_keys++;
-
 
 		n_end = cur_page->num_keys;
 
@@ -782,7 +776,10 @@ void coalesce_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighb
  * maximum
  */
 void redistribute_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighbor_loc, int neighbor_index, int64_t k_prime, int k_prime_index) {  
-
+	if (debugging) {
+		printf("redistribute_nodes\n");
+		printf("page at %lld with neighbor at %lld index %d k_prime %lld at %d\n", page_loc/4095, neighbor_loc/4096, neighbor_index, k_prime, k_prime_index);
+	}
 	int i;
 	node *tmp, *parent;
 	parent = open_page(cur_page->ppo);
@@ -813,6 +810,7 @@ void redistribute_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t ne
 			cur_page->entries[0].npo = cur_page->expo;
 			cur_page->expo = neighbor->entries[neighbor->num_keys - 1].npo;
 
+			parent->entries[k_prime_index].key = neighbor->entries[neighbor->num_keys - 1].key;
 			neighbor->entries[neighbor->num_keys - 1].key = 0;
 			neighbor->entries[neighbor->num_keys - 1].npo = 0;
 		}
@@ -862,6 +860,10 @@ void redistribute_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t ne
 }
 
 void delete_entry(node *cur_page, off_t page_loc, int64_t key) {
+	if (debugging) {
+		printf("delete_entry\n");
+		printf("%s page at %lld delecting %lld\n",cur_page->is_leaf ? "leaf":"internal", page_loc/4096, key);
+	}
 	node *neighbor, *parent;
 	off_t neighbor_loc;
 	int64_t k_prime;
@@ -874,13 +876,13 @@ void delete_entry(node *cur_page, off_t page_loc, int64_t key) {
 	if (debugging)
 		printf("delete_entry called at %lld to delete %lld\n", page_loc/4096, key);
 
-	remove_entry_from_node(cur_page, page_loc, key);
+	cur_page = remove_entry_from_node(cur_page, page_loc, key);
 
 	/* Case:  deletion from the root. 
 	 */
 
-	if (page_loc == headerP->rpo) {
-		adjust_root();
+	if (cur_page->ppo == SEEK_SET) {
+		adjust_root(cur_page);
 		return;
 	}
 
@@ -892,8 +894,8 @@ void delete_entry(node *cur_page, off_t page_loc, int64_t key) {
 	/* Determine minimum allowable size of node,
 	 * to be preserved after deletion.
 	 */
-	//leaf: 15 internal: 124
-	min_keys = cur_page->is_leaf ? cut(leaf_order) - 1 : cut(internal_order) - 1;
+	//leaf: 16 internal: 124
+	min_keys = cur_page->is_leaf ? cut(leaf_order - 1) : cut(internal_order) - 1;
 
 	/* Case:  node stays at or above minimum.
 	 * (The simple case.)
@@ -925,7 +927,7 @@ void delete_entry(node *cur_page, off_t page_loc, int64_t key) {
 		k_prime_index = neighbor_index + 1;
 		k_prime = parent->entries[k_prime_index].key;
 	}
-
+	printf("k_prime: %lld\n", k_prime);
 	capacity = cur_page->is_leaf ? leaf_order : internal_order - 1;
 
 	/* Coalescence. */
@@ -948,6 +950,9 @@ int delete(int64_t key) {
 	off_t leaf_loc;
 
 	if (find(key) == NULL) {
+		verbose = debugging = true;
+		find(key);
+		verbose = debugging = false;
 		printf("key does not exists. Failed to delete\n");
 		return -1;
 	}
