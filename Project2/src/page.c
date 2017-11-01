@@ -5,7 +5,7 @@ int db_fd = -1;
 int open_db(char *pathname) {
 	int temp;
 	off_t test;
-	db_fd = open(pathname, O_RDWR | O_CREAT | O_EXCL | O_SYNC, 0776);
+	db_fd = open(pathname, O_RDWR | O_CREAT | O_EXCL | O_SYNC, 0777);
 	headerP = (header_page*)calloc(1, PAGESIZE);
 
 	if (db_fd > 0) {
@@ -144,17 +144,19 @@ void print_tree() {
 	printf("fpo: %lld\nrpo: %lld\n", headerP->fpo/4096, headerP->rpo/4096);
 	printf("# of pages: %lld\n\n", headerP->num_pages);
 
-	if (headerP->rpo == 0) {
-		printf("Empty Tree\n");
-		return;
-	}
-
 	freepage = headerP->fpo;
 	while (freepage != 0) {
 		num_fpage++;
 		tmppage = open_page(freepage);
 		freepage = tmppage->ppo;
 	}
+
+	if (headerP->rpo == 0) {
+		printf("Empty Tree\n");
+		printf("# of free page: %d\n", num_fpage);
+		return;
+	}
+
 
 	heightpage = open_page(headerP->rpo);
 	while(!heightpage->is_leaf) {
