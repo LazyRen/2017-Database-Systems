@@ -735,9 +735,9 @@ void coalesce_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighb
 		cur_page->entries[current_insertion_index].npo = neighbor->expo;
 		cur_page->num_keys++;
 
-		n_end = neighbor->num_keys;
+		current_end = neighbor->num_keys;
 
-		for (i = current_insertion_index + 1, j = 0; j < n_end; i++, j++) {
+		for (i = current_insertion_index + 1, j = 0; j < current_end; i++, j++) {
 			cur_page->entries[i].key = neighbor->entries[j].key;
 			cur_page->entries[i].npo = neighbor->entries[j].npo;
 			cur_page->num_keys++;
@@ -756,8 +756,9 @@ void coalesce_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighb
 
 	pwrite(db_fd, cur_page, PAGESIZE, page_loc);
 	add_free_page(neighbor_loc);
-	delete_entry(parent, cur_page->ppo, k_prime);
 	free(parent);
+	parent = open_page(cur_page->ppo);
+	delete_entry(parent, cur_page->ppo, k_prime);
 	return;
 }
 
