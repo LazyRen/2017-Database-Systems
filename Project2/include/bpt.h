@@ -29,7 +29,7 @@ int insert(int64_t key, char *value);
 
 // Delection
 int get_neighbor_index(node *child_page, off_t child_loc, off_t *neighbor_loc);
-void remove_entry_from_node(node *cur_page, off_t page_loc, int64_t key);
+node* remove_entry_from_node(node *cur_page, off_t page_loc, int64_t key);
 void adjust_root(node *root);
 void coalesce_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighbor_loc, int neighbor_index, int64_t k_prime);
 void redistribute_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighbor_loc, int neighbor_index, int64_t k_prime, int k_prime_index);
