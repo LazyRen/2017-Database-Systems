@@ -847,15 +847,17 @@ void delete_entry(node *cur_page, off_t page_loc, int64_t key) {
 
 int delete(int64_t key) {
 	node *key_leaf;
+	char *val;
 	off_t leaf_loc;
 
-	if (find(key) == NULL) {
+	if ((val = find(key)) == NULL) {
 		printf("key does not exists. Failed to delete\n");
 		return -1;
 	}
 
 	key_leaf = find_leaf(&leaf_loc, key);
 	delete_entry(key_leaf, leaf_loc, key);
+	free(val);
 	free(key_leaf);
 	return 0;
 }
