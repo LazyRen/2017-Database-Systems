@@ -9,5 +9,7 @@ Project2/project_bpt.pdf
 Project2/mydb
 Project2/main
 Project2/testinput
+Project2/log.txt
 *.out
 *.db
+*.bak

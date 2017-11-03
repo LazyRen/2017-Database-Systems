@@ -5,7 +5,7 @@ int db_fd = -1;
 int open_db(char *pathname) {
 	int temp;
 	off_t test;
-	db_fd = open(pathname, O_RDWR | O_CREAT | O_EXCL | O_DIRECT | O_SYNC , 0777);
+	db_fd = open(pathname, O_RDWR | O_CREAT | O_EXCL | O_SYNC , 0777);
 	headerP = (header_page*)calloc(1, PAGESIZE);
 
 	if (db_fd > 0) {
@@ -20,7 +20,7 @@ int open_db(char *pathname) {
 		return 0;
 	}
 
-	db_fd = open(pathname, O_RDWR | O_DIRECT | O_SYNC);
+	db_fd = open(pathname, O_RDWR | O_SYNC);
 	if (db_fd > 0) {
 		// printf("Existing DB File has been successfully opened\n");
 		temp = pread(db_fd, headerP, PAGESIZE, SEEK_SET);
@@ -32,7 +32,7 @@ int open_db(char *pathname) {
 			rootP = (page *)calloc(1, PAGESIZE);
 			temp = pread(db_fd, rootP, PAGESIZE, headerP->rpo);
 			if (temp < PAGESIZE) {
-				printf("%lld\n", headerP->rpo);
+				printf("%"PRId64"\n", headerP->rpo);
 				printf("Failed to read root_page\n");
 				printf("%s\n", strerror(errno));
 				exit(EXIT_FAILURE);
