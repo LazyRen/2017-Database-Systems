@@ -9,8 +9,10 @@ import os
 from random import shuffle
 from timeit import default_timer as timer
 FIND_RESULT_FMTS = "Key: %d, Value: %s"
+DELETE_RESULT_FMTS = "d %d"
 INSERT_CMD_FMTS = "i %d %s\n"
 FIND_CMD_FMTS = "f %d\n"
+DELETE_CMD_FMTS = "d %d\n"
 RESULT_FMTS = "Result: %d/%d (%.2f) %.2f secs"
 
 def test_case(arr):
@@ -41,6 +43,29 @@ def test_case(arr):
 
 	return succ, end - start
 
+def delete_test_case(arr):
+	f = open("log.txt", "w")
+	p = Popen("./main", stdin=PIPE, stdout=PIPE, shell=True)
+	succ = 0;
+	# insert start
+	start = timer()
+	for i in arr:
+		print(i)
+		input_d = DELETE_CMD_FMTS % (i)
+		p.stdin.write(input_d.encode("utf-8"))
+		f.write(input_d)
+		p.stdin.flush()
+		result = p.stdout.readline().decode('utf-8').strip()
+		print(result)
+		if (result == (DELETE_RESULT_FMTS % (i)).strip()):
+			succ+= 1
+	end = timer()
+
+	p.kill()
+	f.close()
+
+	return succ, end - start
+
 def test_case_seq(casename, case_size):
 	print(casename + " Test")
 	
@@ -60,6 +85,16 @@ def test_case_rnd(casename, case_size):
 	print(RESULT_FMTS % (result, case_size, float(result)/case_size * 100, elapse))
 	os.rename("test.db", "last_test.db")
 
+def delete_test_rnd(casename, case_size):
+	print(casename + " Deletion Test")
+	arr = list(range(case_size))
+	shuffle(arr)
+
+	result, elapse = delete_test_case(arr)
+	
+	print(RESULT_FMTS % (result, case_size, float(result)/case_size * 100, elapse))
+	os.rename("test.db", "last_test.db")
+
 os.system('make clean > /dev/null')
 os.system('make main > /dev/null')
 
@@ -68,13 +103,18 @@ try:
 except:
 	pass
 
-print("---------- Sequantial Insert Test -----------")
+# print("---------- Sequantial Insert Test -----------")
 # test_case_seq("Small(2^10)", 2 ** 10)
 # test_case_seq("Medium(2^15)", 2 ** 15)
 # test_case_seq("Large(2^20)", 2 ** 20)
 
 
 print("--------- Random Insert Test ------------")
-# test_case_rnd("Small(2^10)", 2 ** 10)
+test_case_rnd("Small(2^10)", 2 ** 10)
 # test_case_rnd("Medium(2^15)", 2 ** 15)
-test_case_rnd("Large(2^20)", 2 ** 20)
+# test_case_rnd("Large(2^20)", 2 ** 20)
+
+print("--------- Delete Insert Test ------------")
+delete_test_rnd("Small(2^10)", 2 ** 10)
+# delete_test_rnd("Medium(2^15)", 2 ** 15)
+# delete_test_rnd("Large(2^20)", 2 ** 20)

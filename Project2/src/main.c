@@ -56,11 +56,12 @@ int main(int argc, char ** argv) {
 			}	while(!nodup);
 			check[t] = true;
 			// t = i;
-			printf("delecting %lld\n", t);
-			if (delete(t) == -1) {
-				print_tree();
-				exit(EXIT_FAILURE);
-			}
+			// printf("delecting %lld\n", t);
+			delete(t);
+			// if (delete(t) == -1) {
+			// 	print_tree();
+			// 	exit(EXIT_FAILURE);
+			// }
 		}
 	}
 	while(1) {
@@ -96,27 +97,41 @@ int main(int argc, char ** argv) {
 				printf("No such Instruction\n");
 		}
 	}
-	// return EXIT_SUCCESS;
-    // int64_t input;
-    //  char instruction;
-    //  char *buf;
-    //  buf = malloc(120);
-    //  open_db("test.db");
-    //  while(scanf("%c", &instruction) != EOF){
-    //      switch(instruction){
-    //          case 'i':
-    //              scanf("%lld %s", &input, buf);
- //              insert(input, buf);
-    //              break;
-    //          case 'f':
-    //              scanf("%lld", &input);
-    //              buf = find(input);
-    //              printf("Key: %lld, Value: %s\n", input, buf);
- 			// 	fflush(stdout);
-    //              break;
-    //      }
-    //      while (getchar() != (int)'\n');
-    //  }
-    //  printf("\n");
-    //  return 0;
+	return EXIT_SUCCESS;
+
+	
+	// int64_t input;
+	// char instruction;
+	// char *buf;
+	// buf = malloc(120);
+	// open_db("test.db");
+	// while(scanf("%c", &instruction) != EOF){
+	// 	switch(instruction){
+	// 		case 'i':
+	// 			scanf("%lld %s", &input, buf);
+	// 			insert(input, buf);
+	// 			break;
+	// 		case 'f':
+	// 			scanf("%lld", &input);
+	// 			buf = find(input);
+	// 			if (buf) {
+	// 				printf("Key: %lld, Value: %s\n", input, buf);
+	// 			} else
+	// 				printf("Not Exists\n");
+
+	// 			fflush(stdout);
+	// 			break;
+	// 		case 'd':
+	// 			scanf("%lld", &input);
+	// 			delete(input);
+	// 			break;
+	// 		case 'q':
+	// 			while(getchar() != (int)'\n');
+	// 			return EXIT_SUCCESS;
+	// 			break;
+	// 	}
+	// 	while (getchar() != (int)'\n');
+	// }
+	// printf("\n");
+	// return 0;
 }

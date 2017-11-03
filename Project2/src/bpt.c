@@ -1,9 +1,8 @@
 #include "bpt.h"
 
-int internal_order = 249;//# of keys in internal page. actual pointer is +1.
+//Any page will have at most order - 1 keys
+int internal_order = 249;
 int leaf_order = 32;
-bool verbose = false; //set it true to see how things are working.
-bool debugging = false;//more info. for debugging
 
 /* Finds the record under a given key and prints an
  * appropriate message to stdout.
@@ -11,10 +10,10 @@ bool debugging = false;//more info. for debugging
 void find_and_print(int64_t key) {
 	char *val = find(key);
 	if (val == NULL) {
-		printf("Record not found under key: %lld\n", key);
+		printf("Record not found under key: %"PRId64"\n", key);
 	}
 	else {
-		printf("key: %lld, value: %s\n", key, val);
+		printf("key: %"PRId64", value: %s\n", key, val);
 		free(val);
 	}
 }
@@ -25,29 +24,15 @@ node* find_leaf(off_t *page_loc, int64_t key) {
 	int i = 0;
 	off_t npo = headerP->rpo;
 	if (npo == SEEK_SET) {
-		if (verbose)
-			printf("Empty tree\n");
 		return NULL;
 	}
 	node *c = open_page(npo);
 	while (!c->is_leaf) {
-		if (verbose) {
-			printf("Internal page at: %lld\n", npo/4096);
-			printf("# of keys: %d\n", c->num_keys);
-			if (debugging) {
-				printf("[");
-				for (i = 0; i < c->num_keys - 1; i++)
-					printf("%lld ", c->entries[i].key);
-				printf("%lld] ", c->entries[i].key);
-			}
-		}
 		i = -1;
 		while (i < c->num_keys - 1) {
 			if (key >= c->entries[i + 1].key) i++;
 			else break;
 		}
-		if (verbose)
-			printf("%d ->\n", i);
 		if (i == -1)
 			npo = c->expo;
 		else
@@ -61,16 +46,6 @@ node* find_leaf(off_t *page_loc, int64_t key) {
 		}
 	}
 	*page_loc = npo;
-	if (verbose) {
-		printf("leaf page at: %lld\n", *page_loc/4096);
-		printf("# of keys: %d\n", c->num_keys);
-		if (debugging) {
-			printf("Leaf [");
-			for (i = 0; i < c->num_keys - 1; i++)
-				printf("%lld ", c->records[i].key);
-			printf("%lld] ->\n", c->records[i].key);
-		}
-	}
 	
 	return c;
 }
@@ -78,7 +53,7 @@ node* find_leaf(off_t *page_loc, int64_t key) {
 /* Finds and returns the record to which
  * a key refers.
  */
-//val must be freed after use.
+//return val must be freed after use.
 char* find(int64_t key) {
 	int i = 0;
 	off_t leaf_loc;
@@ -133,8 +108,6 @@ int get_left_index(node *parent, int64_t key) {
 				parent->entries[left_index + 1].key <= key)
 			left_index++;
 	}
-	if (verbose)
-		printf("left index: %d\n", left_index);
 	return left_index;
 }
 
@@ -143,15 +116,11 @@ int get_left_index(node *parent, int64_t key) {
  * Returns the altered leaf.
  */
 void insert_into_leaf(node *leaf, off_t leaf_loc, int64_t key, char *value) {
-	if (debugging)
-		printf("insert_into_leaf(%lld: %lld)\n", key, leaf_loc/4096);
 	int i, insertion_point, temp;
 
 	insertion_point = 0;
 	while (insertion_point < leaf->num_keys && leaf->records[insertion_point].key < key)
 		insertion_point++;
-	if (debugging)
-		printf("Insertion Point: %d\n", insertion_point);
 	for (i = leaf->num_keys; i > insertion_point; i--) {
 		leaf->records[i].key = leaf->records[i - 1].key;
 		strcpy(leaf->records[i].value, leaf->records[i - 1].value);
@@ -161,16 +130,8 @@ void insert_into_leaf(node *leaf, off_t leaf_loc, int64_t key, char *value) {
 	leaf->num_keys++;
 	temp = pwrite(db_fd, leaf, PAGESIZE, leaf_loc);
 	if (temp < PAGESIZE) {
-		printf("%lld\n", leaf_loc);
 		printf("Failed to write leaf page\n");
 		printf("%s\n", strerror(errno));
-	}
-	if(verbose) {
-		printf("# of keys: %d\n", leaf->num_keys);
-		for (int t = 0; t < leaf->num_keys; t++) {
-			printf("[%lld:%s] ", leaf->records[t].key, leaf->records[t].value);
-		}
-		printf("\n");
 	}
 }
 
@@ -181,16 +142,12 @@ void insert_into_leaf(node *leaf, off_t leaf_loc, int64_t key, char *value) {
  */
 void insert_into_leaf_after_splitting(node *leaf, off_t leaf_loc, 
 										int64_t key, char *value) {
-	if (debugging)
-		printf("insert_into_leaf_after_splitting(%lld, %lld)\n", key, leaf_loc/4096);
 	node *new_leaf;
 	int64_t temp_keys[leaf_order + 1], new_key;
 	char temp_values[leaf_order + 1][120];
 	int insertion_index, split, i, j;
 	off_t new_leaf_loc;
 	new_leaf = get_free_page(leaf->ppo, &new_leaf_loc, 1);
-	if (debugging)
-		printf("for splitting leaf: new_leaf at %lld\n", new_leaf_loc/4096);
 
 	insertion_index = 0;
 	while (insertion_index < leaf_order - 1 && leaf->records[insertion_index].key < key)
@@ -204,12 +161,6 @@ void insert_into_leaf_after_splitting(node *leaf, off_t leaf_loc,
 
 	temp_keys[insertion_index] = key;
 	strcpy(temp_values[insertion_index], value);
-	if (debugging) {
-		printf("\ntotal leaf key\n");
-		for (int t = 0; t < leaf_order; t++)
-			printf("[%lld:%s] ", temp_keys[t], temp_values[t]);
-		printf("\n");
-	}
 	leaf->num_keys = 0;
 
 	split = cut(leaf_order - 1);
@@ -237,16 +188,6 @@ void insert_into_leaf_after_splitting(node *leaf, off_t leaf_loc,
 	for (i = new_leaf->num_keys; i < leaf_order - 1; i++) {
 		new_leaf->records[i].key = 0;
 		memset(new_leaf->records[i].value, '\0', sizeof(char) * 120);
-	}
-
-	if (debugging) {
-		printf("leaf\n");
-		for (int t = 0; t < leaf->num_keys; t++)
-			printf("[%lld:%s]", leaf->records[t].key, leaf->records[t].value);
-		printf("\nnew_leaf\n");
-		for (int t = 0; t < new_leaf->num_keys; t++)
-			printf("[%lld:%s]", new_leaf->records[t].key, new_leaf->records[t].value);
-		printf("\n");
 	}
 
 	new_leaf->ppo = leaf->ppo;
@@ -279,10 +220,6 @@ void insert_into_node(node *parent, off_t parent_loc,
 	right->ppo = parent_loc;
 	pwrite(db_fd, right, PAGESIZE, right_loc);
 
-	if (debugging) {
-		printf("insert_into_node called\n");
-		printf("parent at %lld with %d keys\n", parent_loc/4096, parent->num_keys);
-	}
 	return;
 }
 
@@ -369,10 +306,6 @@ void insert_into_node_after_splitting(node *old_node, off_t old_node_loc,
  */
 void insert_into_parent(node *left, off_t left_loc, int64_t key, 
 						  node *right ,off_t right_loc) {
-	if (debugging) {
-		printf("insert_into_parent called\nparent_loc: %lld\n", left->ppo);
-		printf("left_loc: %lld\nkey: %lld\nright_loc: %lld\n", left_loc/4096, key, right_loc/4096);
-	}
 	int left_index;
 	node *parent;
 
@@ -385,15 +318,11 @@ void insert_into_parent(node *left, off_t left_loc, int64_t key,
 	}
 
 	parent = open_page(left->ppo);
-	if (debugging)
 	if (parent == NULL) {
 		perror("Failed to find parent - insert_into_parent()");
 		exit(EXIT_FAILURE);
 	}
 
-	/* Case: leaf or node. (Remainder of
-	 * function body.)  
-	 */
 
 	/* Find the parent's pointer to the left 
 	 * node.
@@ -401,9 +330,6 @@ void insert_into_parent(node *left, off_t left_loc, int64_t key,
 
 	left_index = get_left_index(parent, left->entries[0].key);
 	//if return value is '-1' offset is located at addr 120-128(expo)
-	if (debugging) {
-		printf("left key: %lld\n", left->entries[0].key);
-	}
 
 	/* Simple case: the new key fits into the node. 
 	 */
@@ -442,13 +368,6 @@ node* insert_into_new_root(node *left, off_t left_loc, int64_t key,
 	headerP->rpo = root_loc;
 	pwrite(db_fd, headerP, PAGESIZE, SEEK_SET);
 
-	if (debugging) {
-		printf("insert_into_new_root called\n");
-		printf("new root at: %lld with %d keys\n", root_loc/4096, root->num_keys);
-		for (int t = 0; t < root->num_keys; t++)
-			printf("%lld ", root->entries[t].key);
-		printf("\n");
-	}
 	return root;
 }
 
@@ -460,7 +379,7 @@ void start_new_tree(int64_t key, char *value) {
 
 	rootP = get_free_page(SEEK_SET, &root_loc, 1);
 
-	//cpy records
+	//copy records
 	rootP->records[0].key = key;
 	strcpy(rootP->records[0].value, value);
 	rootP->num_keys++;
@@ -470,8 +389,6 @@ void start_new_tree(int64_t key, char *value) {
 	headerP->rpo = root_loc;
 	pwrite(db_fd, headerP, PAGESIZE, SEEK_SET);
 
-	if (verbose)
-		printf("new root saved at : %lld\n", root_loc/4096);
 	return;
 }
 
@@ -511,7 +428,7 @@ int insert(int64_t key, char *value) {
 	 */
 
 	if ((val = find(key)) != NULL) {
-		printf("key already exists\n");
+		printf("%"PRId64" key already exists\n", key);
 		printf("value: %s\n", val);
 		free(val);
 		return -1;
@@ -522,9 +439,6 @@ int insert(int64_t key, char *value) {
 	 */
 
 	leaf = find_leaf(&leaf_loc, key);
-	if (verbose) {
-		printf("found leaf at : %lld\n", leaf_loc/4096);
-	}
 
 	/* Case: leaf has room for key and pointer.
 	 */
@@ -575,14 +489,10 @@ int get_neighbor_index(node *child_page, off_t child_loc, off_t *neighbor_loc) {
 
 	// Error state.
 	printf("Search for nonexistent neighbor in parent.\n");
-	printf("Node at:  %lld - %lld\n", child_page->ppo/4096, child_loc/4096);
 	exit(EXIT_FAILURE);
 }
 
 void adjust_root(node *root) {
-	if (debugging) {
-		printf("adjust_root called\n");
-	}
 	node *new_root;
 	off_t old_root_loc;
 
@@ -592,8 +502,6 @@ void adjust_root(node *root) {
 	 */
 
 	if (root->num_keys > 0) {
-		if (debugging)
-			printf("no need to adjust root\n");
 		return;
 	}
 
@@ -635,10 +543,6 @@ void adjust_root(node *root) {
 }
 
 node* remove_entry_from_node(node *cur_page, off_t page_loc, int64_t key) {
-	if (debugging) {
-		printf("remove_entry_from_node\n");
-		printf("delete %lld from %lld\n", key, page_loc/4096);
-	}
 	int i;
 
 	// Remove the key and shift other keys accordingly.
@@ -690,10 +594,6 @@ node* remove_entry_from_node(node *cur_page, off_t page_loc, int64_t key) {
  * without exceeding the maximum.
  */
 void coalesce_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighbor_loc, int neighbor_index, int64_t k_prime) {
-	if (debugging) {
-		printf("coalesce_nodes\n");
-		printf("cur at %lld with neighbor at %lld index %d k_prime: %lld\n", page_loc/4096, neighbor_loc/4096, neighbor_index, k_prime);
-	}
 	int i, j, neighbor_insertion_index, n_end;
 	node *tmp, *parent;
 	off_t tmp_loc;
@@ -777,11 +677,7 @@ void coalesce_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighb
  * small node's entries without exceeding the
  * maximum
  */
-void redistribute_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighbor_loc, int neighbor_index, int64_t k_prime, int k_prime_index) {  
-	if (debugging) {
-		printf("redistribute_nodes\n");
-		printf("page at %lld with neighbor at %lld index %d k_prime %lld at %d\n", page_loc/4095, neighbor_loc/4096, neighbor_index, k_prime, k_prime_index);
-	}
+void redistribute_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighbor_loc, int neighbor_index, int64_t k_prime, int k_prime_index) {
 	int i;
 	node *tmp, *parent;
 	parent = open_page(cur_page->ppo);
@@ -871,10 +767,6 @@ void redistribute_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t ne
 }
 
 void delete_entry(node *cur_page, off_t page_loc, int64_t key) {
-	if (debugging) {
-		printf("delete_entry\n");
-		printf("%s page at %lld deleting %lld\n",cur_page->is_leaf ? "leaf":"internal", page_loc/4096, key);
-	}
 	node *neighbor, *parent;
 	off_t neighbor_loc;
 	int64_t k_prime;
@@ -936,7 +828,6 @@ void delete_entry(node *cur_page, off_t page_loc, int64_t key) {
 		k_prime_index = neighbor_index + 1;
 		k_prime = parent->entries[k_prime_index].key;
 	}
-	printf("k_prime: %lld\n", k_prime);
 	capacity = cur_page->is_leaf ? leaf_order : internal_order - 1;
 
 	/* Coalescence. */
@@ -959,9 +850,6 @@ int delete(int64_t key) {
 	off_t leaf_loc;
 
 	if (find(key) == NULL) {
-		verbose = debugging = true;
-		find(key);
-		verbose = debugging = false;
 		printf("key does not exists. Failed to delete\n");
 		return -1;
 	}
@@ -969,6 +857,5 @@ int delete(int64_t key) {
 	key_leaf = find_leaf(&leaf_loc, key);
 	delete_entry(key_leaf, leaf_loc, key);
 	free(key_leaf);
-
 	return 0;
 }
