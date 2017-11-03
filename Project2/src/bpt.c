@@ -209,7 +209,7 @@ void insert_into_node(node *parent, off_t parent_loc,
                        int left_index, int64_t key, node *right, off_t right_loc) {
 	int i;
 
-	for (i = parent->num_keys; i > left_index; i--) {
+	for (i = parent->num_keys - 1; i > left_index; i--) {
 		parent->entries[i + 1].key = parent->entries[i].key;
 		parent->entries[i + 1].npo = parent->entries[i].npo;
 	}

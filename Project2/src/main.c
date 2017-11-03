@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 int main(int argc, char ** argv) {
+
 	int64_t key, temp, t;
 	char instruction;
 	char value[300];
@@ -23,12 +24,12 @@ int main(int argc, char ** argv) {
 	if (automate) {
 		bool check[1048576];
 		bool nodup;
-		int inputnum, deletenum;
+		int64_t inputnum, deletenum;
 		char c = 'i';
 		int temp, toWrite;
 
 		printf("insert num: ");
-		scanf("%d", &inputnum);
+		scanf("%"PRId64, &inputnum);
 		memset(check, false, sizeof(check));
 		for (int i = inputnum; i >= 1; i--) {
 			do {
@@ -39,13 +40,13 @@ int main(int argc, char ** argv) {
 			}	while(!nodup);
 			check[t] = true;
 			// t = i;
-			sprintf(value, "%lld", t);
+			sprintf(value, "%"PRId64, t);
 			// printf("%lld %s\n", t, value);
 			insert(t, value);
 		}
 
 		printf("delete num: ");
-		scanf("%d", &deletenum);
+		scanf("%"PRId64, &deletenum);
 		memset(check, false, sizeof(check));
 		for (int i = deletenum; i >= 1; i--) {
 			do {
@@ -56,7 +57,7 @@ int main(int argc, char ** argv) {
 			}	while(!nodup);
 			check[t] = true;
 			// t = i;
-			// printf("delecting %lld\n", t);
+			// printf("delecting %l"PRId64"\n", t);
 			delete(t);
 			// if (delete(t) == -1) {
 			// 	print_tree();
@@ -72,13 +73,13 @@ int main(int argc, char ** argv) {
 		printf("instruction: %c\n", instruction);
 		switch(instruction) {
 			case 'i':
-				scanf("%lld %s", &key, value);
+				scanf("%"PRId64" %s", &key, value);
 				while(getchar() != '\n');
 				insert(key, value);
 				// printf("key: %lld\n\n", key);
 				break;
 			case 'f':
-				scanf("%lld", &key);
+				scanf("%"PRId64, &key);
 				while(getchar() != '\n');
 				find_and_print(key);
 				break;
@@ -86,9 +87,9 @@ int main(int argc, char ** argv) {
 				print_tree();
 				break;
 			case 'd':
-				scanf("%lld", &key);
+				scanf("%"PRId64, &key);
 				if (delete(key) != -1)
-					printf("key: %lld deleted\n\n", key);
+					printf("key: %"PRId64" deleted\n\n", key);
 				break;
 			case 'q':
 				return EXIT_SUCCESS;
@@ -100,38 +101,38 @@ int main(int argc, char ** argv) {
 	return EXIT_SUCCESS;
 
 	
-	// int64_t input;
-	// char instruction;
-	// char *buf;
-	// buf = malloc(120);
-	// open_db("test.db");
-	// while(scanf("%c", &instruction) != EOF){
-	// 	switch(instruction){
-	// 		case 'i':
-	// 			scanf("%lld %s", &input, buf);
-	// 			insert(input, buf);
-	// 			break;
-	// 		case 'f':
-	// 			scanf("%lld", &input);
-	// 			buf = find(input);
-	// 			if (buf) {
-	// 				printf("Key: %lld, Value: %s\n", input, buf);
-	// 			} else
-	// 				printf("Not Exists\n");
+	int64_t input;
+	char instruction;
+	char *buf;
+	buf = malloc(120);
+	open_db("test.db");
+	while(scanf("%c", &instruction) != EOF){
+		switch(instruction){
+			case 'i':
+				scanf("%"PRId64" %s", &input, buf);
+				insert(input, buf);
+				break;
+			case 'f':
+				scanf("%"PRId64, &input);
+				buf = find(input);
+				if (buf) {
+					printf("Key: %"PRId64", Value: %s\n", input, buf);
+				} else
+					printf("Not Exists\n");
 
-	// 			fflush(stdout);
-	// 			break;
-	// 		case 'd':
-	// 			scanf("%lld", &input);
-	// 			delete(input);
-	// 			break;
-	// 		case 'q':
-	// 			while(getchar() != (int)'\n');
-	// 			return EXIT_SUCCESS;
-	// 			break;
-	// 	}
-	// 	while (getchar() != (int)'\n');
-	// }
-	// printf("\n");
-	// return 0;
+				fflush(stdout);
+				break;
+			case 'd':
+				scanf("%"PRId64, &input);
+				delete(input);
+				break;
+			case 'q':
+				while(getchar() != (int)'\n');
+				return EXIT_SUCCESS;
+				break;
+		}
+		while (getchar() != (int)'\n');
+	}
+	printf("\n");
+	return 0;
 }
