@@ -103,6 +103,9 @@ page* get_free_page(off_t ppo, off_t *page_loc, int is_leaf)
 	return new_page;
 }
 
+
+//if the page has 0 entries/records
+//set all data as 0 and move it to the free page list
 void add_free_page(off_t page_loc)
 {
 	page *new_free_page = calloc(1, PAGESIZE);
@@ -116,17 +119,17 @@ void add_free_page(off_t page_loc)
 
 void print_page_info(page* cur_page, off_t po, int64_t *total_keys)
 {
-	printf("%s page at %lld - %lld\n", cur_page->is_leaf ? "leaf" : "internal", cur_page->ppo/4096, po/4096);
+	printf("%s page at %"PRId64" - %"PRId64"\n", cur_page->is_leaf ? "leaf" : "internal", cur_page->ppo/4096, po/4096);
 	printf("# of keys: %d\n", cur_page->num_keys);
 	if (cur_page->is_leaf)
 		*total_keys += cur_page->num_keys;
 	printf("{");
 	for (int i = 0; i < cur_page->num_keys; i++) {
 		if (cur_page->is_leaf) {
-			printf("[%lld:%s] ", cur_page->records[i].key, cur_page->records[i].value);
+			printf("[%"PRId64":%s] ", cur_page->records[i].key, cur_page->records[i].value);
 		}
 		else {
-			printf("%lld ", cur_page->entries[i].key);
+			printf("%"PRId64" ", cur_page->entries[i].key);
 		}
 	}
 	printf("}\n");
@@ -141,8 +144,8 @@ void print_tree() {
 	int height = 0, num_internals = 0, num_fpage = 0;
 
 	init_queue(&myQ);
-	printf("fpo: %lld\nrpo: %lld\n", headerP->fpo/4096, headerP->rpo/4096);
-	printf("# of pages: %lld\n\n", headerP->num_pages);
+	printf("fpo: %"PRId64"\nrpo: %"PRId64"\n", headerP->fpo/4096, headerP->rpo/4096);
+	printf("# of pages: %"PRId64"\n\n", headerP->num_pages);
 
 	freepage = headerP->fpo;
 	while (freepage != 0) {
@@ -185,8 +188,8 @@ void print_tree() {
 		free(cur_page);
 	}
 
-	printf("# of internal pages: %d, # of leaf pages: %lld, # of free pages: %d\n", num_internals, headerP->num_pages - num_internals - num_fpage - 1, num_fpage);
-	printf("total keys: %lld\n", total_keys);
+	printf("# of internal pages: %d, # of leaf pages: %"PRId64", # of free pages: %d\n", num_internals, headerP->num_pages - num_internals - num_fpage - 1, num_fpage);
+	printf("total keys: %"PRId64"\n", total_keys);
 }
 
 void init_queue(queue *q)
