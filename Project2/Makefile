@@ -20,7 +20,7 @@ OBJS_FOR_LIB:=$(SRCS_FOR_LIB:.c=.o)
 SRCS_FOR_TEST:=$(SRCDIR)bpt_origin.c
 OBJS_FOR_TEST:=$(SRCS_FOR_TEST:.c=.o)
 
-CFLAGS+= -g -fPIC -I $(INC)
+CFLAGS+= -g -Wall -fPIC -I $(INC)
 
 TARGET=main
 TEST_TARGET=main_origin
