@@ -38,6 +38,7 @@ node* find_leaf(off_t *page_loc, int64_t key) {
 		else
 			npo = c->entries[i].npo;
 		if (npo == 0) {
+			free(c);
 			return NULL;
 		}
 		else {
@@ -466,9 +467,7 @@ int insert(int64_t key, char *value) {
 int get_neighbor_index(node *child_page, off_t child_loc, off_t *neighbor_loc) {
 
 	int i;
-	node *tmp = open_page(child_loc);
-	// node *parent_page = open_page(child_page->ppo);
-	node *parent_page = open_page(tmp->ppo);
+	node *parent_page = open_page(child_page->ppo);
 	/* Return the index of the key to the left
 	 * of the pointer in the parent pointing
 	 * to child_page.  
@@ -852,6 +851,7 @@ int delete(int64_t key) {
 
 	if ((val = find(key)) == NULL) {
 		printf("key does not exists. Failed to delete\n");
+		free(val);
 		return -1;
 	}
 

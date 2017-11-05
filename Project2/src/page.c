@@ -4,7 +4,6 @@ int db_fd = -1;
 
 int open_db(char *pathname) {
 	int temp;
-	off_t test;
 	db_fd = open(pathname, O_RDWR | O_CREAT | O_EXCL | O_SYNC, 0777);
 	headerP = (header_page*)calloc(1, PAGESIZE);
 

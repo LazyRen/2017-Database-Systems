@@ -8,9 +8,7 @@ header_page* headerP;
 page* rootP;
 
 int open_db(char *pathname);
-void add_free_page(off_t page_loc);
 page* open_page(off_t po);
-page* get_free_page(off_t ppo, off_t *page_loc, int is_leaf);
 void print_page_info(page* cur_page, off_t po, int64_t *total_keys);
 void print_tree();
 
