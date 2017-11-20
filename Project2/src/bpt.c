@@ -285,7 +285,7 @@ void insert_into_node_after_splitting(node *old_node, off_t old_node_loc,
 	child->ppo = new_node_loc;
 	pwrite(db_fd, child, PAGESIZE, new_node->expo);
 	free(child);
-	for (i = 0; i <= new_node->num_keys; i++) {
+	for (i = 0; i < new_node->num_keys; i++) {
 		child = open_page(new_node->entries[i].npo);
 		child->ppo = new_node_loc;
 		pwrite(db_fd, child, PAGESIZE, new_node->entries[i].npo);

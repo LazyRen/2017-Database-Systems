@@ -74,15 +74,12 @@ typedef struct buffer_structure {
 
 typedef struct buffer_manager {
 	int capacity;
-	int size;
 	int last_buf;
 	struct buffer_structure *buffer_pool;
 } buffer_manager;
 
 typedef struct table_info {
-	int table_fd;
-	struct header_page *headerP;
-	struct page *rootP;
+	int fd;
 } table_info;
 
 //structures for the queue
