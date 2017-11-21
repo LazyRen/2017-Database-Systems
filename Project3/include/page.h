@@ -3,11 +3,14 @@
 
 #include "structure.h"
 #include "bpt.h"
+
 #define PAGESIZE (4096)
 #define MAX_TABLE 10
+#define toggle_bs false
 
 buffer_manager buf_man;
 table_info table[MAX_TABLE];
+bool binary_search;
 
 //Utility Functions
 void show_buffer_manager(void);
@@ -26,6 +29,10 @@ buffer_structure* get_free_page(int table_id, off_t ppo, off_t *page_loc, int is
 void add_free_page(off_t page_loc);
 
 //Functions that will be used for print_tree
+int bs_buffer(int tid, int64_t cpo);
+void insert_buffer(int tid, int64_t cpo, int loc);
+void delete_buffer(int tid, int64_t cpo);
+void modify_buffer(int tid, int64_t old_cpo, int64_t new_cpo, int bid);
 void init_queue(queue *q);
 int is_empty(queue *q);
 void enqueue(queue *q, off_t data);

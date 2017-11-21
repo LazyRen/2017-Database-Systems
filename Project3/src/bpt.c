@@ -447,9 +447,6 @@ int insert(int table_id, int64_t key, char *value) {
 		insert_into_leaf_after_splitting(leaf, leaf_loc, key, value);
 
 	drop_pincount(leaf, true);
-	for (int i = 0; i < buf_man.capacity; i++)
-		if (buf_man.buffer_pool[i].pin_count != 0)
-			printf("pin_count leak occured\n");
 	return 0;
 }
 

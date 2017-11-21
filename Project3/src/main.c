@@ -41,25 +41,25 @@ int main(int argc, char ** argv) {
 	// 		insert(tid, t, value);
 	// 	}
 
-		// printf("delete num: ");
-		// scanf("%"PRId64, &deletenum);
-		// memset(check, false, sizeof(check));
-		// for (int i = deletenum; i >= 1; i--) {
-		// 	do {
-		// 		nodup = true;
-		// 		t = rand() % deletenum;
-		// 		if (check[t])
-		// 			nodup = false;
-		// 	}	while(!nodup);
-		// 	check[t] = true;
-		// 	// t = i;
-		// 	// printf("delecting %l"PRId64"\n", t);
-		// 	delete(t);
-		// 	// if (delete(t) == -1) {
-		// 	// 	print_tree();
-		// 	// 	exit(EXIT_FAILURE);
-		// 	// }
-		// }
+	// 	// printf("delete num: ");
+	// 	// scanf("%"PRId64, &deletenum);
+	// 	// memset(check, false, sizeof(check));
+	// 	// for (int i = deletenum; i >= 1; i--) {
+	// 	// 	do {
+	// 	// 		nodup = true;
+	// 	// 		t = rand() % deletenum;
+	// 	// 		if (check[t])
+	// 	// 			nodup = false;
+	// 	// 	}	while(!nodup);
+	// 	// 	check[t] = true;
+	// 	// 	t = i;
+	// 	// 	printf("delecting %l"PRId64"\n", t);
+	// 	// 	delete(t);
+	// 	// 	if (delete(t) == -1) {
+	// 	// 		print_tree();
+	// 	// 		exit(EXIT_FAILURE);
+	// 	// 	}
+	// 	// }
 	// }
 	// while(1) {
 	// 	printf("i / f / t / b / d / q\n");
