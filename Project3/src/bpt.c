@@ -453,406 +453,403 @@ int insert(int table_id, int64_t key, char *value) {
 
 // // DELETION.
 
-// /* Utility function for deletion.  Retrieves
-//  * the index of a node's nearest neighbor (sibling)
-//  * to the left if one exists.  If not (the node
-//  * is the leftmost child), returns -2
-//  * if the node is at index [0], returns -1
-//  */
-// int get_neighbor_index(node *child_page, off_t child_loc, off_t *neighbor_loc) {
+/* Utility function for deletion.  Retrieves
+ * the index of a node's nearest neighbor (sibling)
+ * to the left if one exists.  If not (the node
+ * is the leftmost child), returns -2
+ * if the node is at index [0], returns -1
+ */
+int get_neighbor_index(buffer_structure *parent_page, off_t child_loc, off_t *neighbor_loc) {
 
-// 	int i;
-// 	node *parent_page = open_page(child_page->ppo);
-// 	/* Return the index of the key to the left
-// 	 * of the pointer in the parent pointing
-// 	 * to child_page.  
-// 	 * If child_page is the leftmost child, this means
-// 	 * return -2. If it is located at index[0], return -1. 
-// 	 */
-// 	if (parent_page->expo == child_loc) {
-// 		*neighbor_loc = parent_page->entries[0].npo;
-// 		free(parent_page);
-// 		return -2;
-// 	}
-// 	for (i = 0; i < parent_page->num_keys; i++)
-// 		if (parent_page->entries[i].npo == child_loc) {
-// 			*neighbor_loc = (i == 0 ? parent_page->expo : parent_page->entries[i - 1].npo);
-// 			free(parent_page);
-// 			return i - 1;
-// 		}
+	int i;
+	/* Return the index of the key to the left
+	 * of the pointer in the parent pointing
+	 * to child_page.  
+	 * If child_page is the leftmost child, this means
+	 * return -2. If it is located at index[0], return -1. 
+	 */
+	if (parent_page->expo == child_loc) {
+		*neighbor_loc = parent_page->entries[0].npo;
+		return -2;
+	}
+	for (i = 0; i < parent_page->num_keys; i++)
+		if (parent_page->entries[i].npo == child_loc) {
+			*neighbor_loc = (i == 0 ? parent_page->expo : parent_page->entries[i - 1].npo);
+			return i - 1;
+		}
 
-// 	// Error state.
-// 	printf("Search for nonexistent neighbor in parent.\n");
-// 	exit(EXIT_FAILURE);
-// }
+	// Error state.
+	printf("Search for nonexistent neighbor in parent.\n");
+	// print_tree(child_page->tid);
+	// print_page_info(parent_page, parent_page->cpo, NULL);
+	// print_page_info(child_page, child_page->cpo, NULL);
+	exit(EXIT_FAILURE);
+}
 
-// void adjust_root(node *root) {
-// 	node *new_root;
-// 	off_t old_root_loc;
+void adjust_root(buffer_structure *root) {
+	buffer_structure *headerP;
+	buffer_structure *new_root;
+	off_t old_root_loc;
 
-// 	/* Case: nonempty root.
-// 	 * Key and pointer have already been deleted,
-// 	 * so nothing to be done.
-// 	 */
+	/* Case: nonempty root.
+	 * Key and pointer have already been deleted,
+	 * so nothing to be done.
+	 */
 
-// 	if (root->num_keys > 0) {
-// 		return;
-// 	}
+	if (root->num_keys > 0) {
+		return;
+	}
 
-// 	old_root_loc = headerP->rpo;
-// 	/* Case: empty root. 
-// 	 */
+	headerP = open_page(root->tid, SEEK_SET);
+	old_root_loc = headerP->rpo;
+	/* Case: empty root. 
+	 */
 
-// 	// If it has a child, promote 
-// 	// the first (only) child
-// 	// as the new root.
+	// If it has a child, promote 
+	// the first (only) child
+	// as the new root.
 
-// 	if (!root->is_leaf) {
-// 		headerP->rpo = root->expo;
-// 		pwrite(db_fd, headerP, PAGESIZE, 0);
+	if (!root->is_leaf) {
+		headerP->rpo = root->expo;
 
-// 		new_root = open_page(headerP->rpo);
-// 		new_root->ppo = SEEK_SET;
+		new_root = open_page(headerP->tid, headerP->rpo);
+		new_root->ppo = SEEK_SET;
 
-// 		free(rootP);
-// 		add_free_page(old_root_loc);
-// 		rootP = new_root;
-// 		pwrite(db_fd, new_root, PAGESIZE, headerP->rpo);
-// 	}
+		add_free_page(headerP->tid, old_root_loc);
+		drop_pincount(new_root, true);
+	}
 
-// 	// If it is a leaf (has no children),
-// 	// then the whole tree is empty.
+	// If it is a leaf (has no children),
+	// then the whole tree is empty.
 
-// 	else {
-// 		headerP->rpo = 0;
-// 		pwrite(db_fd, headerP, PAGESIZE, 0);
+	else {
+		headerP->rpo = 0;
 
-// 		add_free_page(old_root_loc);
-// 		free(rootP);
-// 		rootP = NULL;
-// 	}
+		add_free_page(headerP->tid, old_root_loc);
+	}
 
+	drop_pincount(headerP, true);
+	return;
+}
 
-// 	return;
-// }
+void remove_entry_from_node(buffer_structure *cur_page, int64_t key) {
+	int i;
 
-// node* remove_entry_from_node(node *cur_page, off_t page_loc, int64_t key) {
-// 	int i;
+	// Remove the key and shift other keys accordingly.
+	if (cur_page->is_leaf) {
+		i = 0;
+		while (cur_page->records[i].key != key)
+			i++;
+		for (++i; i < cur_page->num_keys; i++) {
+			cur_page->records[i - 1].key = cur_page->records[i].key;
+			strcpy(cur_page->records[i - 1].value, cur_page->records[i].value);
+		}
+	}
+	else {
+		i = 0;
+		while (cur_page->entries[i].key != key)
+			i++;
+		for (++i; i < cur_page->num_keys; i++) {
+			cur_page->entries[i - 1].key = cur_page->entries[i].key;
+			cur_page->entries[i - 1].npo = cur_page->entries[i].npo;
+		}
+	}
 
-// 	// Remove the key and shift other keys accordingly.
-// 	if (cur_page->is_leaf) {
-// 		i = 0;
-// 		while (cur_page->records[i].key != key)
-// 			i++;
-// 		for (++i; i < cur_page->num_keys; i++) {
-// 			cur_page->records[i - 1].key = cur_page->records[i].key;
-// 			strcpy(cur_page->records[i - 1].value, cur_page->records[i].value);
-// 		}
-// 	}
-// 	else {
-// 		i = 0;
-// 		while (cur_page->entries[i].key != key)
-// 			i++;
-// 		for (++i; i < cur_page->num_keys; i++) {
-// 			cur_page->entries[i - 1].key = cur_page->entries[i].key;
-// 			cur_page->entries[i - 1].npo = cur_page->entries[i].npo;
-// 		}
-// 	}
+	// One key fewer.
+	cur_page->num_keys--;
 
-// 	// One key fewer.
-// 	cur_page->num_keys--;
+	// Set the other pointers to NULL for tidiness.
+	// A leaf uses the last pointer to point to the next leaf.
+	if (cur_page->is_leaf) {
+		for (i = cur_page->num_keys; i < leaf_order - 1; i++) {
+			cur_page->records[i].key = 0;
+			memset(cur_page->records[i].value, '\0', sizeof(char) * 120);
+		}
+	}
+	else {
+		for (i = cur_page->num_keys; i < internal_order - 1; i++) {
+			cur_page->entries[i].key = 0;
+			cur_page->entries[i].npo = 0;
+		}
+	}
 
-// 	// Set the other pointers to NULL for tidiness.
-// 	// A leaf uses the last pointer to point to the next leaf.
-// 	if (cur_page->is_leaf) {
-// 		for (i = cur_page->num_keys; i < leaf_order - 1; i++) {
-// 			cur_page->records[i].key = 0;
-// 			memset(cur_page->records[i].value, '\0', sizeof(char) * 120);
-// 		}
-// 	}
-// 	else {
-// 		for (i = cur_page->num_keys; i < internal_order - 1; i++) {
-// 			cur_page->entries[i].key = 0;
-// 			cur_page->entries[i].npo = 0;
-// 		}
-// 	}
+	set_dirty(cur_page);
+	return;
+}
 
-// 	pwrite(db_fd, cur_page, PAGESIZE, page_loc);
-// 	return cur_page;
-// }
+/* Coalesces a node that has become
+ * too small after deletion
+ * with a neighboring node that
+ * can accept the additional entries
+ * without exceeding the maximum.
+ */
+void coalesce_nodes(buffer_structure *cur_page, buffer_structure *neighbor, int neighbor_index, int64_t k_prime) {
+	int i, j, neighbor_insertion_index, n_end;
+	buffer_structure *tmp, *parent;
+	bool changed = false;
+	/* Swap neighbor with node if node is on the
+	 * extreme left and neighbor is to its right.
+	 */
+	parent = open_page(cur_page->tid, cur_page->ppo);
+	if (neighbor_index == -2) {
+		tmp = cur_page;
+		cur_page = neighbor;
+		neighbor = tmp;
+		changed = true;
+	}
 
-// /* Coalesces a node that has become
-//  * too small after deletion
-//  * with a neighboring node that
-//  * can accept the additional entries
-//  * without exceeding the maximum.
-//  */
-// void coalesce_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighbor_loc, int neighbor_index, int64_t k_prime) {
-// 	int i, j, neighbor_insertion_index, n_end;
-// 	node *tmp, *parent;
-// 	off_t tmp_loc;
-// 	/* Swap neighbor with node if node is on the
-// 	 * extreme left and neighbor is to its right.
-// 	 */
-// 	parent = open_page(cur_page->ppo);
-// 	if (neighbor_index == -2) {
-// 		tmp = cur_page;
-// 		cur_page = neighbor;
-// 		neighbor = tmp;
-// 		tmp_loc = page_loc;
-// 		page_loc = neighbor_loc;
-// 		neighbor_loc = tmp_loc;
-// 	}
+	/* Starting point in the neighbor for copying
+	 * keys and pointers from n.
+	 * Recall that n and neighbor have swapped places
+	 * in the special case of n being a leftmost child.
+	 */
 
-// 	/* Starting point in the neighbor for copying
-// 	 * keys and pointers from n.
-// 	 * Recall that n and neighbor have swapped places
-// 	 * in the special case of n being a leftmost child.
-// 	 */
+	neighbor_insertion_index = neighbor->num_keys;
 
-// 	neighbor_insertion_index = neighbor->num_keys;
+	/* Case:  nonleaf node.
+	 * Append k_prime and the following pointer.
+	 * Append all pointers and keys from the neighbor.
+	 */
 
-// 	/* Case:  nonleaf node.
-// 	 * Append k_prime and the following pointer.
-// 	 * Append all pointers and keys from the neighbor.
-// 	 */
+	if (!cur_page->is_leaf) {
+		/* Append k_prime.
+		 */
+		neighbor->entries[neighbor_insertion_index].key = k_prime;
+		neighbor->entries[neighbor_insertion_index].npo = cur_page->expo;
+		neighbor->num_keys++;
 
-// 	if (!cur_page->is_leaf) {
-// 		/* Append k_prime.
-// 		 */
-// 		neighbor->entries[neighbor_insertion_index].key = k_prime;
-// 		neighbor->entries[neighbor_insertion_index].npo = cur_page->expo;
-// 		neighbor->num_keys++;
+		n_end = cur_page->num_keys;
 
-// 		n_end = cur_page->num_keys;
+		for (i = neighbor_insertion_index + 1, j = 0; j < n_end; i++, j++) {
+			neighbor->entries[i].key = cur_page->entries[j].key;
+			neighbor->entries[i].npo = cur_page->entries[j].npo;
+			neighbor->num_keys++;
+			cur_page->num_keys--;
+		}
 
-// 		for (i = neighbor_insertion_index + 1, j = 0; j < n_end; i++, j++) {
-// 			neighbor->entries[i].key = cur_page->entries[j].key;
-// 			neighbor->entries[i].npo = cur_page->entries[j].npo;
-// 			neighbor->num_keys++;
-// 			cur_page->num_keys--;
-// 		}
+		/* All children must now point up to the same parent.
+		 */
+		for (i = neighbor_insertion_index; i < neighbor->num_keys; i++) {
+			tmp = open_page(neighbor->tid, neighbor->entries[i].npo);
+			tmp->ppo = neighbor->cpo;
+			drop_pincount(tmp, true);
+		}
+	}
 
-// 		/* All children must now point up to the same parent.
-// 		 */
-// 		for (i = neighbor_insertion_index; i < neighbor->num_keys; i++) {
-// 			tmp = open_page(neighbor->entries[i].npo);
-// 			tmp->ppo = neighbor_loc;
-// 			pwrite(db_fd, tmp, PAGESIZE, neighbor->entries[i].npo);
-// 			free(tmp);
-// 		}
-// 	}
+	/* In a leaf, append the keys and pointers of
+	 * n to the neighbor.
+	 * Set the neighbor's last pointer to point to
+	 * what had been n's right neighbor.
+	 */
 
-// 	/* In a leaf, append the keys and pointers of
-// 	 * n to the neighbor.
-// 	 * Set the neighbor's last pointer to point to
-// 	 * what had been n's right neighbor.
-// 	 */
+	else {
+		for (i = neighbor_insertion_index, j = 0; j < cur_page->num_keys; i++, j++) {
+			neighbor->records[i].key = cur_page->records[j].key;
+			strcpy(neighbor->records[i].value, cur_page->records[j].value);
+			neighbor->num_keys++;
+		}
+		neighbor->expo = cur_page->expo;
+	}
 
-// 	else {
-// 		for (i = neighbor_insertion_index, j = 0; j < cur_page->num_keys; i++, j++) {
-// 			neighbor->records[i].key = cur_page->records[j].key;
-// 			strcpy(neighbor->records[i].value, cur_page->records[j].value);
-// 			neighbor->num_keys++;
-// 		}
-// 		neighbor->expo = cur_page->expo;
-// 	}
+	set_dirty(neighbor);
+	add_free_page(cur_page->tid, cur_page->cpo);
+	delete_entry(parent, k_prime);
+	drop_pincount(parent, true);
+	if (changed)
+	{
+		tmp = cur_page;
+		cur_page = neighbor;
+		neighbor = tmp;
+	}
+	return;
+}
 
-// 	pwrite(db_fd, neighbor, PAGESIZE, neighbor_loc);
-// 	add_free_page(page_loc);
-// 	delete_entry(parent, cur_page->ppo, k_prime);
-// 	free(parent);
-// 	return;
-// }
+/*
+ * Redistributes entries between two nodes when
+ * one has become too small after deletion
+ * but its neighbor is too big to append the
+ * small node's entries without exceeding the
+ * maximum
+ */
+void redistribute_nodes(buffer_structure *cur_page, buffer_structure *neighbor, int neighbor_index, int64_t k_prime, int k_prime_index) {
+	int i;
+	buffer_structure *tmp, *parent;
+	parent = open_page(cur_page->tid, cur_page->ppo);
+	/* Case: n has a neighbor to the left. 
+	 * Pull the neighbor's last key-pointer pair over
+	 * from the neighbor's right end to n's left end.
+	 */
 
-//  Redistributes entries between two nodes when
-//  * one has become too small after deletion
-//  * but its neighbor is too big to append the
-//  * small node's entries without exceeding the
-//  * maximum
- 
-// void redistribute_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighbor_loc, int neighbor_index, int64_t k_prime, int k_prime_index) {
-// 	int i;
-// 	node *tmp, *parent;
-// 	parent = open_page(cur_page->ppo);
-// 	/* Case: n has a neighbor to the left. 
-// 	 * Pull the neighbor's last key-pointer pair over
-// 	 * from the neighbor's right end to n's left end.
-// 	 */
+	if (neighbor_index != -2) {
+		if (cur_page->is_leaf) {
+			for (i = cur_page->num_keys; i > 0; i--) {
+				cur_page->records[i].key = cur_page->records[i - 1].key;
+				strcpy(cur_page->records[i].value, cur_page->records[i - 1].value);
+			}
+			cur_page->records[0].key = neighbor->records[neighbor->num_keys - 1].key;
+			strcpy(cur_page->records[0].value, neighbor->records[neighbor->num_keys - 1].value);
+			parent->entries[k_prime_index].key = cur_page->records[0].key;
 
-// 	if (neighbor_index != -2) {
-// 		if (cur_page->is_leaf) {
-// 			for (i = cur_page->num_keys; i > 0; i--) {
-// 				cur_page->records[i].key = cur_page->records[i - 1].key;
-// 				strcpy(cur_page->records[i].value, cur_page->records[i - 1].value);
-// 			}
-// 			cur_page->records[0].key = neighbor->records[neighbor->num_keys - 1].key;
-// 			strcpy(cur_page->records[0].value, neighbor->records[neighbor->num_keys - 1].value);
-// 			parent->entries[k_prime_index].key = cur_page->records[0].key;
+			neighbor->records[neighbor->num_keys - 1].key = 0;
+			memset(neighbor->records[neighbor->num_keys - 1].value, '\0', 120);
+		}
+		else {
+			for (i = cur_page->num_keys; i > 0; i--) {
+				cur_page->entries[i].key = cur_page->entries[i - 1].key;
+				cur_page->entries[i].npo = cur_page->entries[i - 1].npo;
+			}
+			cur_page->entries[0].key = k_prime;
+			cur_page->entries[0].npo = cur_page->expo;
+			cur_page->expo = neighbor->entries[neighbor->num_keys - 1].npo;
 
-// 			neighbor->records[neighbor->num_keys - 1].key = 0;
-// 			memset(neighbor->records[neighbor->num_keys - 1].value, '\0', 120);
-// 		}
-// 		else {
-// 			for (i = cur_page->num_keys; i > 0; i--) {
-// 				cur_page->entries[i].key = cur_page->entries[i - 1].key;
-// 				cur_page->entries[i].npo = cur_page->entries[i - 1].npo;
-// 			}
-// 			cur_page->entries[0].key = k_prime;
-// 			cur_page->entries[0].npo = cur_page->expo;
-// 			cur_page->expo = neighbor->entries[neighbor->num_keys - 1].npo;
+			tmp = open_page(cur_page->tid, cur_page->expo);
+			tmp->ppo = cur_page->cpo;
+			parent->entries[k_prime_index].key = neighbor->entries[neighbor->num_keys - 1].key;
+			neighbor->entries[neighbor->num_keys - 1].key = 0;
+			neighbor->entries[neighbor->num_keys - 1].npo = 0;
+			drop_pincount(tmp, true);
+		}
+	}
 
-// 			tmp = open_page(cur_page->expo);
-// 			tmp->ppo = page_loc;
-// 			pwrite(db_fd, tmp, PAGESIZE, cur_page->expo);
-// 			parent->entries[k_prime_index].key = neighbor->entries[neighbor->num_keys - 1].key;
-// 			free(tmp);
-// 			neighbor->entries[neighbor->num_keys - 1].key = 0;
-// 			neighbor->entries[neighbor->num_keys - 1].npo = 0;
-// 		}
-// 	}
+	/* Case: n is the leftmost child.
+	 * Take a key-pointer pair from the neighbor to the right.
+	 * Move the neighbor's leftmost key-pointer pair
+	 * to n's rightmost position.
+	 */
 
-// 	/* Case: n is the leftmost child.
-// 	 * Take a key-pointer pair from the neighbor to the right.
-// 	 * Move the neighbor's leftmost key-pointer pair
-// 	 * to n's rightmost position.
-// 	 */
+	else {  
+		if (cur_page->is_leaf) {
+			cur_page->records[cur_page->num_keys].key = neighbor->records[0].key;
+			strcpy(cur_page->records[cur_page->num_keys].value, neighbor->records[0].value);
 
-// 	else {  
-// 		if (cur_page->is_leaf) {
-// 			cur_page->records[cur_page->num_keys].key = neighbor->records[0].key;
-// 			strcpy(cur_page->records[cur_page->num_keys].value, neighbor->records[0].value);
+			for (i = 0; i < neighbor->num_keys - 1; i++) {
+				neighbor->records[i].key = neighbor->records[i + 1].key;
+				strcpy(neighbor->records[i].value, neighbor->records[i + 1].value);
+			}
+			parent->entries[k_prime_index].key = neighbor->records[0].key;
+		}
+		else {
+			cur_page->entries[cur_page->num_keys].key = k_prime;
+			cur_page->entries[cur_page->num_keys].npo = neighbor->expo;
+			parent->entries[k_prime_index].key = neighbor->entries[0].key;
+			tmp = open_page(cur_page->tid, cur_page->entries[cur_page->num_keys].npo);
+			tmp->ppo = cur_page->cpo;
+			drop_pincount(tmp, true);
 
-// 			for (i = 0; i < neighbor->num_keys - 1; i++) {
-// 				neighbor->records[i].key = neighbor->records[i + 1].key;
-// 				strcpy(neighbor->records[i].value, neighbor->records[i + 1].value);
-// 			}
-// 			parent->entries[k_prime_index].key = neighbor->records[0].key;
-// 		}
-// 		else {
-// 			cur_page->entries[cur_page->num_keys].key = k_prime;
-// 			cur_page->entries[cur_page->num_keys].npo = neighbor->expo;
-// 			parent->entries[k_prime_index].key = neighbor->entries[0].key;
-// 			tmp = open_page(cur_page->entries[cur_page->num_keys].npo);
-// 			tmp->ppo = page_loc;
-// 			pwrite(db_fd, tmp, PAGESIZE, cur_page->entries[cur_page->num_keys].npo);
-// 			free(tmp);
+			neighbor->expo = neighbor->entries[0].npo;
+			for (i = 0; i < neighbor->num_keys - 1; i++) {
+				neighbor->entries[i].key = neighbor->entries[i + 1].key;
+				neighbor->entries[i].npo = neighbor->entries[i + 1].npo;
+			}
+		}
+	}
 
-// 			neighbor->expo = neighbor->entries[0].npo;
-// 			for (i = 0; i < neighbor->num_keys - 1; i++) {
-// 				neighbor->entries[i].key = neighbor->entries[i + 1].key;
-// 				neighbor->entries[i].npo = neighbor->entries[i + 1].npo;
-// 			}
-// 		}
-// 	}
+	/* n now has one more key and one more pointer;
+	 * the neighbor has one fewer of each.
+	 */
 
-// 	/* n now has one more key and one more pointer;
-// 	 * the neighbor has one fewer of each.
-// 	 */
+	cur_page->num_keys++;
+	neighbor->num_keys--;
 
-// 	cur_page->num_keys++;
-// 	neighbor->num_keys--;
+	set_dirty(neighbor);
+	set_dirty(cur_page);
+	drop_pincount(parent, true);
+	return;
+}
 
-// 	pwrite(db_fd, neighbor, PAGESIZE, neighbor_loc);
-// 	pwrite(db_fd, cur_page, PAGESIZE, page_loc);
-// 	pwrite(db_fd, parent, PAGESIZE, cur_page->ppo);
-// 	free(parent);
-// 	return;
-// }
+void delete_entry(buffer_structure *cur_page, int64_t key) {
+	buffer_structure *neighbor, *parent;
+	off_t neighbor_loc;
+	int64_t k_prime;
+	int k_prime_index;
+	int min_keys;
+	int neighbor_index;
+	int capacity;
 
-// void delete_entry(node *cur_page, off_t page_loc, int64_t key) {
-// 	node *neighbor, *parent;
-// 	off_t neighbor_loc;
-// 	int64_t k_prime;
-// 	int k_prime_index;
-// 	int min_keys;
-// 	int neighbor_index;
-// 	int capacity;
+	// Remove key and pointer from node.
 
-// 	// Remove key and pointer from node.
+	remove_entry_from_node(cur_page, key);
 
-// 	cur_page = remove_entry_from_node(cur_page, page_loc, key);
+	/* Case:  deletion from the root. 
+	 */
 
-// 	/* Case:  deletion from the root. 
-// 	 */
-
-// 	if (cur_page->ppo == SEEK_SET) {
-// 		adjust_root(cur_page);
-// 		return;
-// 	}
+	if (cur_page->ppo == SEEK_SET) {
+		adjust_root(cur_page);
+		return;
+	}
 
 
-// 	/* Case:  deletion from a node below the root.
-// 	 * (Rest of function body.)
-// 	 */
+	/* Case:  deletion from a node below the root.
+	 * (Rest of function body.)
+	 */
 
-// 	/* Determine minimum allowable size of node,
-// 	 * to be preserved after deletion.
-// 	 */
-// 	//leaf: 16 internal: 124
-// 	min_keys = cur_page->is_leaf ? cut(leaf_order - 1) : cut(internal_order) - 1;
+	/* Determine minimum allowable size of node,
+	 * to be preserved after deletion.
+	 */
+	//leaf: 16 internal: 124
+	min_keys = cur_page->is_leaf ? cut(leaf_order - 1) : cut(internal_order) - 1;
 
-// 	/* Case:  node stays at or above minimum.
-// 	 * (The simple case.)
-// 	 */
+	/* Case:  node stays at or above minimum.
+	 * (The simple case.)
+	 */
 
-// 	if (cur_page->num_keys >= min_keys)
-// 		return;
+	if (cur_page->num_keys >= min_keys)
+		return;
 
-// 	/* Case:  node falls below minimum.
-// 	 * Either coalescence or redistribution
-// 	 * is needed.
-// 	 */
+	/* Case:  node falls below minimum.
+	 * Either coalescence or redistribution
+	 * is needed.
+	 */
 
-// 	/* Find the appropriate neighbor node with which
-// 	 * to coalesce.
-// 	 * Also find the key (k_prime) in the parent
-// 	 * between the pointer to node n and the pointer
-// 	 * to the neighbor.
-// 	 */
-// 	//-2: leftmost, -1: neighbor is in expo
-// 	neighbor_index = get_neighbor_index(cur_page, page_loc, &neighbor_loc);
-// 	parent = open_page(cur_page->ppo);
-// 	neighbor = open_page(neighbor_loc);
-// 	if (neighbor_index == -2) {
-// 		k_prime_index = 0;
-// 		k_prime = parent->entries[k_prime_index].key;
-// 	}
-// 	else {
-// 		k_prime_index = neighbor_index + 1;
-// 		k_prime = parent->entries[k_prime_index].key;
-// 	}
-// 	capacity = cur_page->is_leaf ? leaf_order : internal_order - 1;
+	/* Find the appropriate neighbor node with which
+	 * to coalesce.
+	 * Also find the key (k_prime) in the parent
+	 * between the pointer to node n and the pointer
+	 * to the neighbor.
+	 */
+	//-2: leftmost, -1: neighbor is in expo
+	parent = open_page(cur_page->tid, cur_page->ppo);
+	neighbor_index = get_neighbor_index(parent, cur_page->cpo, &neighbor_loc);
+	neighbor = open_page(cur_page->tid, neighbor_loc);
+	if (neighbor_index == -2) {
+		k_prime_index = 0;
+		k_prime = parent->entries[k_prime_index].key;
+	}
+	else {
+		k_prime_index = neighbor_index + 1;
+		k_prime = parent->entries[k_prime_index].key;
+	}
+	capacity = cur_page->is_leaf ? leaf_order : internal_order - 1;
 
-// 	/* Coalescence. */
+	/* Coalescence. */
 
-// 	if (neighbor->num_keys + cur_page->num_keys < capacity)
-// 		coalesce_nodes(cur_page, page_loc, neighbor, neighbor_loc, neighbor_index, k_prime);
+	if (neighbor->num_keys + cur_page->num_keys < capacity)
+		coalesce_nodes(cur_page, neighbor, neighbor_index, k_prime);
 
-// 	/* Redistribution. */
+	/* Redistribution. */
 
-// 	else
-// 		redistribute_nodes(cur_page, page_loc, neighbor, neighbor_loc, neighbor_index, k_prime, k_prime_index);
+	else
+		redistribute_nodes(cur_page, neighbor, neighbor_index, k_prime, k_prime_index);
 
-// 	free(parent);
-// 	free(neighbor);
-// 	return;
-// }
+	set_dirty(cur_page);
+	drop_pincount(parent, true);
+	drop_pincount(neighbor, true);
+	return;
+}
 
-// int delete(int64_t key) {
-// 	node *key_leaf;
-// 	char *val;
-// 	off_t leaf_loc;
+int delete(int table_id, int64_t key) {
+	buffer_structure *key_leaf;
+	char *val;
+	off_t leaf_loc;
 
-// 	if ((val = find(key)) == NULL) {
-// 		printf("key does not exists. Failed to delete\n");
-// 		free(val);
-// 		return -1;
-// 	}
+	if ((val = find(table_id, key)) == NULL) {
+		printf("key does not exists. Failed to delete\n");
+		return -1;
+	}
 
-// 	key_leaf = find_leaf(&leaf_loc, key);
-// 	delete_entry(key_leaf, leaf_loc, key);
-// 	free(val);
-// 	free(key_leaf);
-// 	return 0;
-// }
+	key_leaf = find_leaf(table_id, &leaf_loc, key);
+	delete_entry(key_leaf, key);
+	free(val);
+	drop_pincount(key_leaf, true);
+	return 0;
+}

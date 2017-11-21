@@ -118,8 +118,6 @@ buffer_structure* open_page(int table_id, off_t po)
 			if (buf_man.buffer_pool[i].tid == table_id && buf_man.buffer_pool[i].cpo == po) {
 				buf_man.buffer_pool[i].refbit = true;
 				buf_man.buffer_pool[i].pin_count += 1;
-				buf_man.last_buf = bid;
-				// printf("tid: %d po: %"PRId64" found in buffer %d\n", table_id, po, i);
 				return &buf_man.buffer_pool[i];
 			}
 		}
@@ -215,16 +213,18 @@ buffer_structure* get_free_page(int table_id, off_t ppo, off_t *page_loc, int is
 
 //if the page has 0 entries/records
 //set all data as 0 and move it to the free page list
-// void add_free_page(off_t page_loc)
-// {
-// 	page *new_free_page = calloc(1, PAGESIZE);
-// 	new_free_page->ppo = headerP->fpo;
-// 	pwrite(db_fd, new_free_page, PAGESIZE, page_loc);
+void add_free_page(int table_id, off_t page_loc)
+{
+	buffer_structure *headerP = open_page(table_id, SEEK_SET);
+	buffer_structure *new_free_page = open_page(table_id, page_loc);
+	memset(new_free_page, 0, PAGESIZE);
+	new_free_page->ppo = headerP->fpo;
+	
 
-// 	headerP->fpo = page_loc;
-// 	pwrite(db_fd, headerP, PAGESIZE, 0);
-// 	free(new_free_page);
-// }
+	headerP->fpo = page_loc;
+	drop_pincount(headerP, true);
+	drop_pincount(new_free_page, true);
+}
 
 int bs_buffer(int tid, int64_t cpo)
 {
@@ -362,7 +362,7 @@ void print_page_info(buffer_structure *cur_page, off_t po, int64_t *total_keys)
 {
 	printf("%s page at %"PRId64" - %"PRId64"\n", cur_page->is_leaf ? "leaf" : "internal", cur_page->ppo/4096, po/4096);
 	printf("# of keys: %d\n", cur_page->num_keys);
-	if (cur_page->is_leaf)
+	if (cur_page->is_leaf && total_keys != NULL)
 		*total_keys += cur_page->num_keys;
 	printf("{");
 	for (int i = 0; i < cur_page->num_keys; i++) {
@@ -395,6 +395,7 @@ void print_tree(int table_id) {
 		num_fpage++;
 		tmppage = open_page(table_id, freepage);
 		freepage = tmppage->ppo;
+		drop_pincount(tmppage, false);
 	}
 
 	if (headerP->rpo == 0) {

@@ -29,11 +29,11 @@ void start_new_tree(int table_id, int64_t key, char *value);
 int insert(int table_id, int64_t key, char *value);
 
 // Delection
-// int get_neighbor_index(node *child_page, off_t child_loc, off_t *neighbor_loc);
-// node* remove_entry_from_node(node *cur_page, off_t page_loc, int64_t key);
-// void adjust_root(node *root);
-// void coalesce_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighbor_loc, int neighbor_index, int64_t k_prime);
-// void redistribute_nodes(node *cur_page, off_t page_loc, node *neighbor, off_t neighbor_loc, int neighbor_index, int64_t k_prime, int k_prime_index);
-// void delete_entry(node *cur_page, off_t page_loc, int64_t key);
-// int delete(int64_t key);
+int get_neighbor_index(buffer_structure *parent_page, off_t child_loc, off_t *neighbor_loc);
+void remove_entry_from_node(buffer_structure *cur_page, int64_t key);
+void adjust_root(buffer_structure *root);
+void coalesce_nodes(buffer_structure *cur_page, buffer_structure *neighbor, int neighbor_index, int64_t k_prime);
+void redistribute_nodes(buffer_structure *cur_page, buffer_structure *neighbor, int neighbor_index, int64_t k_prime, int k_prime_index);
+void delete_entry(buffer_structure *cur_page, int64_t key);
+int delete(int table_id, int64_t key);
 #endif /* __BPT_H__*/
