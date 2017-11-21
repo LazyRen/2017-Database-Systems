@@ -8,7 +8,7 @@
 
 // Output and utility.
 void find_and_print(int table_id, int64_t key); 
-buffer_structure* find_leaf(int table_id, off_t *page_loc, int64_t key);
+buffer_structure* find_leaf(buffer_structure* headerP, int table_id, off_t *page_loc, int64_t key);
 char* find(int table_id, int64_t key);
 int cut(int length);
 
@@ -25,7 +25,7 @@ void insert_into_parent(buffer_structure *left, off_t left_loc, int64_t key,
 						  buffer_structure *right, off_t right_loc);
 void insert_into_new_root(buffer_structure *left, off_t left_loc, int64_t key, 
                            buffer_structure *right, off_t right_loc);
-void start_new_tree(int table_id, int64_t key, char *value);
+void start_new_tree(buffer_structure *headerP, int table_id, int64_t key, char *value);
 int insert(int table_id, int64_t key, char *value);
 
 // Delection
