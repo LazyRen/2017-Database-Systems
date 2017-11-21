@@ -26,7 +26,7 @@ void write_buffer(buffer_structure *cur_buf);
 void drop_pincount(buffer_structure *cur_buf, bool dirty);
 void set_dirty(buffer_structure *cur_buf);
 buffer_structure* get_free_page(int table_id, off_t ppo, off_t *page_loc, int is_leaf);
-void add_free_page(off_t page_loc);
+void add_free_page(int table_id, off_t page_loc);
 
 //Functions that will be used for print_tree
 int bs_buffer(int tid, int64_t cpo);

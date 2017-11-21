@@ -851,7 +851,6 @@ int delete(int64_t key) {
 
 	if ((val = find(key)) == NULL) {
 		printf("key does not exists. Failed to delete\n");
-		free(val);
 		return -1;
 	}
 

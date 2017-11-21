@@ -2,10 +2,11 @@
 #include <time.h>
 #include <ctype.h>
 #include <stdbool.h>
-#define bufnum 160
+#define bufnum 16
 
 int main(int argc, char ** argv) {
-	// int64_t key, tid, t;
+	// int64_t key, t;
+	// int tid;
 	// char instruction;
 	// char value[300];
 	// int automate = 1;
@@ -41,25 +42,24 @@ int main(int argc, char ** argv) {
 	// 		insert(tid, t, value);
 	// 	}
 
-	// 	// printf("delete num: ");
-	// 	// scanf("%"PRId64, &deletenum);
-	// 	// memset(check, false, sizeof(check));
-	// 	// for (int i = deletenum; i >= 1; i--) {
-	// 	// 	do {
-	// 	// 		nodup = true;
-	// 	// 		t = rand() % deletenum;
-	// 	// 		if (check[t])
-	// 	// 			nodup = false;
-	// 	// 	}	while(!nodup);
-	// 	// 	check[t] = true;
-	// 	// 	t = i;
-	// 	// 	printf("delecting %l"PRId64"\n", t);
-	// 	// 	delete(t);
-	// 	// 	if (delete(t) == -1) {
-	// 	// 		print_tree();
-	// 	// 		exit(EXIT_FAILURE);
-	// 	// 	}
-	// 	// }
+	// 	printf("delete num: ");
+	// 	scanf("%"PRId64, &deletenum);
+	// 	memset(check, false, sizeof(check));
+	// 	for (int i = deletenum; i >= 1; i--) {
+	// 		do {
+	// 			nodup = true;
+	// 			t = rand() % deletenum;
+	// 			if (check[t])
+	// 				nodup = false;
+	// 		}	while(!nodup);
+	// 		check[t] = true;
+	// 		t = i;
+	// 		printf("delecting %"PRId64"\n", t);
+	// 		if (delete(tid, t) == -1) {
+	// 			print_tree(tid);
+	// 			exit(EXIT_FAILURE);
+	// 		}
+	// 	}
 	// }
 	// while(1) {
 	// 	printf("i / f / t / b / d / q\n");
@@ -85,11 +85,11 @@ int main(int argc, char ** argv) {
 	// 		case 'b':
 	// 			show_buffer_manager();
 	// 			break;
-	// 		// case 'd':
-	// 		// 	scanf("%"PRId64, &key);
-	// 		// 	if (delete(key) != -1)
-	// 		// 		printf("key: %"PRId64" deleted\n\n", key);
-	// 		// 	break;
+	// 		case 'd':
+	// 			scanf("%"PRId64, &key);
+	// 			if (delete(tid, key) != -1)
+	// 				printf("key: %"PRId64" deleted\n\n", key);
+	// 			break;
 	// 		case 'q':
 	// 			shutdown_db();
 	// 			return EXIT_SUCCESS;
@@ -123,10 +123,10 @@ int main(int argc, char ** argv) {
 
 				fflush(stdout);
 				break;
-			// case 'd':
-			// 	scanf("%"PRId64, &input);
-			// 	delete(input);
-			// 	break;
+			case 'd':
+				scanf("%"PRId64, &input);
+				delete(tid, input);
+				break;
 			case 'q':
 				while(getchar() != (int)'\n');
 				return EXIT_SUCCESS;
