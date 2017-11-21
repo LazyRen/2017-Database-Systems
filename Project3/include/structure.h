@@ -75,12 +75,19 @@ typedef struct buffer_structure {
 typedef struct buffer_manager {
 	int capacity;
 	int last_buf;
+	int table_size[10];
+	struct buf_lookup *buffer_lookup[10];
 	struct buffer_structure *buffer_pool;
 } buffer_manager;
 
 typedef struct table_info {
 	int fd;
 } table_info;
+
+typedef struct buf_lookup {
+	int64_t cpo;
+	int buf_loc;
+} buf_lookup;
 
 //structures for the queue
 typedef struct qnode {

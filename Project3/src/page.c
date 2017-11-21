@@ -3,7 +3,15 @@
 int init_db (int num_buf)
 {
 	buf_man.capacity = num_buf;
-	buf_man.last_buf = 0;
+	buf_man.last_buf = -1;
+	if (num_buf >= 100 && toggle_bs)
+		binary_search = true;
+	else
+		binary_search = false;
+	if (binary_search)
+		for (int i = 0; i < MAX_TABLE; i++)
+			buf_man.buffer_lookup[i] = calloc(num_buf, sizeof(buf_lookup));
+
 	buf_man.buffer_pool = calloc(num_buf, sizeof(buffer_structure));
 	if (buf_man.buffer_pool == NULL)
 		return -1;
@@ -12,6 +20,7 @@ int init_db (int num_buf)
 		buf_man.buffer_pool[i].cpo = -1;
 	}
 	for (int i = 0; i < MAX_TABLE; i++) {
+		buf_man.table_size[i] = 0;
 		table[i].fd = -1;
 	}
 	return 0;
@@ -23,6 +32,9 @@ int shutdown_db(void)
 		if (buf_man.buffer_pool[i].is_dirty)
 			write_buffer(&buf_man.buffer_pool[i]);
 	free(buf_man.buffer_pool);
+	if (binary_search)
+		for (int i = 0; i < MAX_TABLE; i++)
+			free(buf_man.buffer_lookup[i]);
 
 	return 0;
 }
@@ -39,6 +51,7 @@ int open_table(char *pathname)
 		return -1;
 	}
 	table[tid].fd = open(pathname, O_RDWR | O_CREAT | O_EXCL | O_SYNC, 0777);
+	buf_man.table_size[tid] = 0;
 	header_page *headerP = (header_page*)calloc(1, PAGESIZE);
 
 	if (table[tid].fd > 0) {
@@ -78,6 +91,7 @@ int close_table(int table_id)
 			buf_man.buffer_pool[i].is_dirty = false;
 			buf_man.buffer_pool[i].refbit = false;
 			buf_man.buffer_pool[i].pin_count = 0;
+			buf_man.table_size[i] = 0;
 		}
 	}
 	table[table_id].fd = -1;
@@ -88,24 +102,44 @@ int close_table(int table_id)
 //must free page after use.
 buffer_structure* open_page(int table_id, off_t po)
 {
+	// printf("open_page (%d %"PRId64")\n", table_id, po);
 	buffer_structure *ret = NULL;
 	int bid = buf_man.last_buf;
-	for (int i = 0; i < buf_man.capacity; i++) {
-		if (buf_man.buffer_pool[i].tid == table_id && buf_man.buffer_pool[i].cpo == po) {
-			buf_man.buffer_pool[i].refbit = true;
-			buf_man.buffer_pool[i].pin_count += 1;
-			buf_man.last_buf = bid;
-			// printf("tid: %d po: %"PRId64" found in buffer %d\n", table_id, po, i);
-			return &buf_man.buffer_pool[i];
+	if (binary_search) {
+		int loc = bs_buffer(table_id, po);
+		if (loc != -1) {
+			buf_man.buffer_pool[loc].refbit = true;
+			buf_man.buffer_pool[loc].pin_count += 1;
+			return &buf_man.buffer_pool[loc];
+		}
+	}
+	else {
+		for (int i = 0; i < buf_man.capacity; i++) {
+			if (buf_man.buffer_pool[i].tid == table_id && buf_man.buffer_pool[i].cpo == po) {
+				buf_man.buffer_pool[i].refbit = true;
+				buf_man.buffer_pool[i].pin_count += 1;
+				buf_man.last_buf = bid;
+				// printf("tid: %d po: %"PRId64" found in buffer %d\n", table_id, po, i);
+				return &buf_man.buffer_pool[i];
+			}
 		}
 	}
 
 	while(ret == NULL) {
 		bid = (bid + 1) % buf_man.capacity;
 		if (buf_man.buffer_pool[bid].pin_count == 0 && buf_man.buffer_pool[bid].refbit == false) {
+			if (binary_search) {
+				if (buf_man.buffer_pool[bid].tid == table_id)
+					modify_buffer(table_id, buf_man.buffer_pool[bid].cpo, po, bid);
+				else {
+					delete_buffer(buf_man.buffer_pool[bid].tid, buf_man.buffer_pool[bid].cpo);
+					insert_buffer(table_id, po, bid);
+				}
+			}
 			if (buf_man.buffer_pool[bid].is_dirty)
 				write_buffer(&buf_man.buffer_pool[bid]);
 			pread(table[table_id].fd, &buf_man.buffer_pool[bid], PAGESIZE, po);
+
 			buf_man.buffer_pool[bid].tid = table_id;
 			buf_man.buffer_pool[bid].cpo = po;
 			buf_man.buffer_pool[bid].is_dirty = false;
@@ -150,7 +184,6 @@ void set_dirty(buffer_structure *cur_buf)
 //if not, create new page and writes it and return the new page.
 buffer_structure* get_free_page(int table_id, off_t ppo, off_t *page_loc, int is_leaf)
 {
-	int bid = buf_man.last_buf;
 	buffer_structure *headerP = open_page(table_id, SEEK_SET);
 	off_t fpo = headerP->fpo;
 	buffer_structure* new_page = NULL;
@@ -160,23 +193,7 @@ buffer_structure* get_free_page(int table_id, off_t ppo, off_t *page_loc, int is
 		temp_page = calloc(1, PAGESIZE);
 		pwrite(table[table_id].fd, temp_page, PAGESIZE, PAGESIZE * headerP->num_pages);
 		free(temp_page);
-		while(new_page == NULL) {
-			bid = (bid + 1) % buf_man.capacity;
-			if (buf_man.buffer_pool[bid].pin_count == 0 && buf_man.buffer_pool[bid].refbit == false) {
-				if (buf_man.buffer_pool[bid].is_dirty)
-					write_buffer(&buf_man.buffer_pool[bid]);
-				pread(table[table_id].fd, &buf_man.buffer_pool[bid], PAGESIZE, *page_loc);
-				buf_man.buffer_pool[bid].tid = table_id;
-				buf_man.buffer_pool[bid].cpo = *page_loc;
-				buf_man.buffer_pool[bid].is_dirty = true;
-				buf_man.buffer_pool[bid].refbit = true;
-				buf_man.buffer_pool[bid].pin_count = 1;
-				buf_man.last_buf = bid;
-				new_page = &buf_man.buffer_pool[bid];
-			}
-			else if (buf_man.buffer_pool[bid].pin_count == 0 && buf_man.buffer_pool[bid].refbit == true)
-				buf_man.buffer_pool[bid].refbit = false;
-		}
+		new_page = open_page(table_id, *page_loc);
 		new_page->ppo = ppo; new_page->is_leaf = is_leaf;
 		
 		headerP->num_pages++;
@@ -209,6 +226,124 @@ buffer_structure* get_free_page(int table_id, off_t ppo, off_t *page_loc, int is
 // 	free(new_free_page);
 // }
 
+int bs_buffer(int tid, int64_t cpo)
+{
+	int l = 0, m , h = buf_man.table_size[tid] - 1;
+	int ret = -1;
+	// printf("bs_buffer(%d %"PRId64")\n", tid, cpo);
+	// printf("size: %d\n", buf_man.table_size[tid]);
+	// for (int i = 0; i < buf_man.table_size[tid]; i++)
+	// 	printf("%"PRId64" ", buf_man.buffer_lookup[tid][i].cpo);
+	// printf("\n");
+	// for (int i = 0; i < buf_man.capacity; i++) {
+	// 	if (buf_man.buffer_pool[i].tid == tid && buf_man.buffer_pool[i].cpo == cpo) {
+	// 		ret = i;
+	// 	}
+	// }
+	while (l <= h && ret == -1) {
+		m = (h + l) / 2;
+		if (buf_man.buffer_lookup[tid][m].cpo == cpo)
+			ret = buf_man.buffer_lookup[tid][m].buf_loc;
+		else if (buf_man.buffer_lookup[tid][m].cpo < cpo)
+			l = m + 1;
+		else
+			h = m - 1;
+	}
+	// printf("bs_buffer ret: %d\n", ret);
+	return ret;
+}
+void insert_buffer(int tid, int64_t cpo, int loc)
+{
+	int i = buf_man.table_size[tid] - 1;
+	if (buf_man.table_size[tid] == 0) {
+		buf_man.buffer_lookup[tid][0].cpo = cpo;
+		buf_man.buffer_lookup[tid][0].buf_loc = loc;
+	}
+	else {
+		while (0 <= i) {
+			if (buf_man.buffer_lookup[tid][i].cpo > cpo) {
+				buf_man.buffer_lookup[tid][i + 1].cpo = buf_man.buffer_lookup[tid][i].cpo;
+				buf_man.buffer_lookup[tid][i + 1].buf_loc = buf_man.buffer_lookup[tid][i].buf_loc;
+			}
+			else {
+				break;
+			}
+			i--;
+		}
+		buf_man.buffer_lookup[tid][i + 1].cpo = cpo;
+		buf_man.buffer_lookup[tid][i + 1].buf_loc = loc;
+	}
+	// printf("insert_buffer(%d %"PRId64" %d) at %d\n", tid, cpo, loc, i + 1);
+	buf_man.table_size[tid] += 1;
+}
+
+void delete_buffer(int tid, int64_t cpo)
+{
+	// printf("delete_buffer(%d %"PRId64")\n", tid, cpo);
+	if (tid == -1 || cpo == -1)
+		return;
+	int loc = -1;
+	int l = 0, m, h = buf_man.table_size[tid] - 1;
+
+	while (l <= h && loc == -1) {
+		m = (h + l) / 2;
+		if (buf_man.buffer_lookup[tid][m].cpo == cpo)
+			loc = m;
+		else if (buf_man.buffer_lookup[tid][m].cpo < cpo)
+			l = m + 1;
+		else
+			h = m - 1;
+	}
+
+	if (loc == -1) {
+		printf("delete_buffer error\n");
+		exit(EXIT_FAILURE);
+	}
+
+	while (loc < buf_man.table_size[tid] - 1) {
+		buf_man.buffer_lookup[tid][loc].cpo = buf_man.buffer_lookup[tid][loc + 1].cpo;
+		buf_man.buffer_lookup[tid][loc].buf_loc = buf_man.buffer_lookup[tid][loc + 1].buf_loc;
+		loc++;
+	}
+
+	buf_man.table_size[tid] -= 1;
+}
+
+void modify_buffer(int tid, int64_t old_cpo, int64_t new_cpo, int bid)
+{
+	int loc = -1;
+	int l = 0, m, h = buf_man.table_size[tid] - 1;
+
+	while (l <= h && loc == -1) {
+		m = (h + l) / 2;
+		if (buf_man.buffer_lookup[tid][m].cpo == old_cpo)
+			loc = m;
+		else if (buf_man.buffer_lookup[tid][m].cpo < old_cpo)
+			l = m + 1;
+		else
+			h = m - 1;
+	}
+
+	if (loc == -1) {
+		printf("delete_buffer error\n");
+		exit(EXIT_FAILURE);
+	}
+
+
+	while (loc < buf_man.table_size[tid] - 1 && buf_man.buffer_lookup[tid][loc + 1].cpo < new_cpo) {
+		buf_man.buffer_lookup[tid][loc].cpo = buf_man.buffer_lookup[tid][loc + 1].cpo;
+		buf_man.buffer_lookup[tid][loc].buf_loc = buf_man.buffer_lookup[tid][loc + 1].buf_loc;
+		loc++;
+	}
+	while (loc > 0 && buf_man.buffer_lookup[tid][loc - 1].cpo > new_cpo) {
+		buf_man.buffer_lookup[tid][loc].cpo = buf_man.buffer_lookup[tid][loc - 1].cpo;
+		buf_man.buffer_lookup[tid][loc].buf_loc = buf_man.buffer_lookup[tid][loc - 1].buf_loc;
+		loc--;
+	}
+	buf_man.buffer_lookup[tid][loc].cpo = new_cpo;
+	buf_man.buffer_lookup[tid][loc].buf_loc = bid;
+}
+
 void show_buffer_manager(void)
 {
 	printf("Buffer Manager Info.\n");
@@ -216,12 +351,13 @@ void show_buffer_manager(void)
 	for (int i = 0; i < buf_man.capacity; i++) {
 		printf("\n");
 		printf("%d buffer pool\n", i);
-		printf("tid: %d cpo: %"PRId64"\n", buf_man.buffer_pool[i].tid,  buf_man.buffer_pool[i].cpo / PAGESIZE);
+		printf("tid: %d cpo: %"PRId64"\n", buf_man.buffer_pool[i].tid,  buf_man.buffer_pool[i].cpo);
 		printf("is_dirty: %d refbit: %d\n",  buf_man.buffer_pool[i].is_dirty,  buf_man.buffer_pool[i].refbit);
 		printf("pin_count: %d\n",  buf_man.buffer_pool[i].pin_count);
 		printf("\n");
 	}
 }
+
 void print_page_info(buffer_structure *cur_page, off_t po, int64_t *total_keys)
 {
 	printf("%s page at %"PRId64" - %"PRId64"\n", cur_page->is_leaf ? "leaf" : "internal", cur_page->ppo/4096, po/4096);
