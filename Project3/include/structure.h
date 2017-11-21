@@ -52,8 +52,8 @@ typedef struct page {
 typedef struct buffer_structure {
 	union {
 		struct {
-			off_t fpo;
-			off_t rpo;
+			off_t fpo;//free page offset
+			off_t rpo;//root page offset
 			int64_t num_pages;
 			char reserved[4072];
 		};
@@ -75,7 +75,9 @@ typedef struct buffer_structure {
 typedef struct buffer_manager {
 	int capacity;
 	int last_buf;
+	//if binary search is in use, this will tell how many buffers are in use for each table
 	int table_size[10];
+	//buffer location is sorted and will be used for binary search
 	struct buf_lookup *buffer_lookup[10];
 	struct buffer_structure *buffer_pool;
 } buffer_manager;

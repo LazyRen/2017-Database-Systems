@@ -100,6 +100,9 @@ int close_table(int table_id)
 
 //read and open the page from the disk.
 //must free page after use.
+//If page is alread in buffer pool, simpl returns it
+//If not, locate page from the disk and read it.
+//If buffer pool is full, find idle buffer page based on CLOCK policy and change it.
 buffer_structure* open_page(int table_id, off_t po)
 {
 	// printf("open_page (%d %"PRId64")\n", table_id, po);
@@ -153,6 +156,7 @@ buffer_structure* open_page(int table_id, off_t po)
 	return ret;
 }
 
+//On the event of exchanging buffer pool, if buffer page is dirty, write it back to disk.
 void write_buffer(buffer_structure *cur_buf)
 {
 	int temp;
@@ -226,20 +230,11 @@ void add_free_page(int table_id, off_t page_loc)
 	drop_pincount(new_free_page, true);
 }
 
+//binary search on buffer to locate page if exist
 int bs_buffer(int tid, int64_t cpo)
 {
 	int l = 0, m , h = buf_man.table_size[tid] - 1;
 	int ret = -1;
-	// printf("bs_buffer(%d %"PRId64")\n", tid, cpo);
-	// printf("size: %d\n", buf_man.table_size[tid]);
-	// for (int i = 0; i < buf_man.table_size[tid]; i++)
-	// 	printf("%"PRId64" ", buf_man.buffer_lookup[tid][i].cpo);
-	// printf("\n");
-	// for (int i = 0; i < buf_man.capacity; i++) {
-	// 	if (buf_man.buffer_pool[i].tid == tid && buf_man.buffer_pool[i].cpo == cpo) {
-	// 		ret = i;
-	// 	}
-	// }
 	while (l <= h && ret == -1) {
 		m = (h + l) / 2;
 		if (buf_man.buffer_lookup[tid][m].cpo == cpo)
@@ -252,6 +247,8 @@ int bs_buffer(int tid, int64_t cpo)
 	// printf("bs_buffer ret: %d\n", ret);
 	return ret;
 }
+
+//sort function for the binary search
 void insert_buffer(int tid, int64_t cpo, int loc)
 {
 	int i = buf_man.table_size[tid] - 1;
@@ -277,6 +274,7 @@ void insert_buffer(int tid, int64_t cpo, int loc)
 	buf_man.table_size[tid] += 1;
 }
 
+//sort function for the binary search
 void delete_buffer(int tid, int64_t cpo)
 {
 	// printf("delete_buffer(%d %"PRId64")\n", tid, cpo);
@@ -309,6 +307,7 @@ void delete_buffer(int tid, int64_t cpo)
 	buf_man.table_size[tid] -= 1;
 }
 
+//sort function for the binary search
 void modify_buffer(int tid, int64_t old_cpo, int64_t new_cpo, int bid)
 {
 	int loc = -1;
@@ -358,9 +357,9 @@ void show_buffer_manager(void)
 	}
 }
 
-void print_page_info(buffer_structure *cur_page, off_t po, int64_t *total_keys)
+void print_page_info(buffer_structure *cur_page, int64_t *total_keys)
 {
-	printf("%s page at %"PRId64" - %"PRId64"\n", cur_page->is_leaf ? "leaf" : "internal", cur_page->ppo/4096, po/4096);
+	printf("%s page at %"PRId64" - %"PRId64"\n", cur_page->is_leaf ? "leaf" : "internal", cur_page->ppo/4096, cur_page->cpo/4096);
 	printf("# of keys: %d\n", cur_page->num_keys);
 	if (cur_page->is_leaf && total_keys != NULL)
 		*total_keys += cur_page->num_keys;
@@ -422,7 +421,7 @@ void print_tree(int table_id) {
 			printf("\n\nnext level\n");
 			parent = cur_page->ppo;
 		}
-		print_page_info(cur_page, cur, &total_keys);
+		print_page_info(cur_page, &total_keys);
 		if (!cur_page->is_leaf) {
 			num_internals++;
 			enqueue(&myQ, cur_page->expo);

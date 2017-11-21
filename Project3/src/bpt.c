@@ -1,4 +1,58 @@
 #include "bpt.h"
+/*
+ *
+ *  bpt:  B+ Tree Implementation
+ *  Copyright (C) 2010-2016  Amittai Aviram  http://www.amittai.com
+ *  All rights reserved.
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ *
+ *  1. Redistributions of source code must retain the above copyright notice, 
+ *  this list of conditions and the following disclaimer.
+ *
+ *  2. Redistributions in binary form must reproduce the above copyright notice, 
+ *  this list of conditions and the following disclaimer in the documentation 
+ *  and/or other materials provided with the distribution.
+ 
+ *  3. Neither the name of the copyright holder nor the names of its 
+ *  contributors may be used to endorse or promote products derived from this 
+ *  software without specific prior written permission.
+ 
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ *  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+ *  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+ *  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE 
+ *  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+ *  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ *  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+ *  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+ *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+ *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ *  POSSIBILITY OF SUCH DAMAGE.
+ 
+ *  Author:  Amittai Aviram 
+ *    http://www.amittai.com
+ *    amittai.aviram@gmail.edu or afa13@columbia.edu
+ *  Original Date:  26 June 2010
+ *  Last modified: 17 June 2016
+ *
+ *  This implementation demonstrates the B+ tree data structure
+ *  for educational purposes, includin insertion, deletion, search, and display
+ *  of the search path, the leaves, or the whole tree.
+ *  
+ *  Must be compiled with a C99-compliant C compiler such as the latest GCC.
+ *
+ *  Usage:  bpt [order]
+ *  where order is an optional argument
+ *  (integer MIN_ORDER <= order <= MAX_ORDER)
+ *  defined as the maximal number of pointers in any node.
+ *
+ */
+/*
+ *	Disk Based Buffered B+ Tree Implementation
+ *	Modified by Dae In Lee
+ */
+
 
 //Any page will have at most order - 1 keys
 int internal_order = 249;
@@ -20,15 +74,12 @@ void find_and_print(int table_id, int64_t key) {
 
 //find a leaf page containing key.
 //must free leaf page after use
-buffer_structure* find_leaf(int table_id, off_t *page_loc, int64_t key) {
+buffer_structure* find_leaf(buffer_structure *headerP, int table_id, off_t *page_loc, int64_t key) {
 	int i = 0;
-	buffer_structure *headerP = open_page(table_id, SEEK_SET);
 	off_t npo = headerP->rpo;
 	if (npo == SEEK_SET) {
-		drop_pincount(headerP, false);
 		return NULL;
 	}
-	drop_pincount(headerP, false);
 	buffer_structure *c = open_page(table_id, npo);
 	while (!c->is_leaf) {
 		i = -1;
@@ -69,7 +120,7 @@ char* find(int table_id, int64_t key) {
 	}
 	drop_pincount(headerP, false);
 
-	buffer_structure *c = find_leaf(table_id, &leaf_loc, key);
+	buffer_structure *c = find_leaf(headerP, table_id, &leaf_loc, key);
 	if (c == NULL) return NULL;
 	for (i = 0; i < c->num_keys; i++)
 		if (c->records[i].key == key) break;
@@ -372,9 +423,8 @@ void insert_into_new_root(buffer_structure *left, off_t left_loc, int64_t key,
 /* First insertion:
  * start a new tree.
  */
-void start_new_tree(int table_id, int64_t key, char *value) {
+void start_new_tree(buffer_structure *headerP, int table_id, int64_t key, char *value) {
 	off_t root_loc;
-	buffer_structure *headerP = open_page(table_id, SEEK_SET);
 	buffer_structure *rootP = get_free_page(table_id, SEEK_SET, &root_loc, 1);
 	//copy records
 	rootP->records[0].key = key;
@@ -384,7 +434,6 @@ void start_new_tree(int table_id, int64_t key, char *value) {
 
 	//update header page
 	headerP->rpo = root_loc;
-	drop_pincount(headerP, true);
 	return;
 }
 
@@ -411,12 +460,11 @@ int insert(int table_id, int64_t key, char *value) {
 	 */
 	buffer_structure *headerP = open_page(table_id, SEEK_SET);
 	if (headerP->rpo == 0) {
-		start_new_tree(table_id, key, value);
+		start_new_tree(headerP, table_id, key, value);
 		drop_pincount(headerP, true);
 		return 0;
 	}
-	else
-		drop_pincount(headerP, false);
+		
 
 	/* The current implementation ignores
 	 * duplicates.
@@ -433,8 +481,8 @@ int insert(int table_id, int64_t key, char *value) {
 	 * (Rest of function body.)
 	 */
 
-	leaf = find_leaf(table_id, &leaf_loc, key);
-
+	leaf = find_leaf(headerP, table_id, &leaf_loc, key);
+	drop_pincount(headerP, false);
 	/* Case: leaf has room for key and pointer.
 	 */
 
@@ -839,6 +887,7 @@ void delete_entry(buffer_structure *cur_page, int64_t key) {
 
 int delete(int table_id, int64_t key) {
 	buffer_structure *key_leaf;
+	buffer_structure *headerP = open_page(table_id, SEEK_SET);
 	char *val;
 	off_t leaf_loc;
 
@@ -847,7 +896,8 @@ int delete(int table_id, int64_t key) {
 		return -1;
 	}
 
-	key_leaf = find_leaf(table_id, &leaf_loc, key);
+	key_leaf = find_leaf(headerP, table_id, &leaf_loc, key);
+	drop_pincount(headerP, false);
 	delete_entry(key_leaf, key);
 	free(val);
 	drop_pincount(key_leaf, true);
