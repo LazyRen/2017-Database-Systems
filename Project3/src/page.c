@@ -13,11 +13,16 @@ int init_db (int num_buf)
 			buf_man.buffer_lookup[i] = calloc(num_buf, sizeof(buf_lookup));
 
 	buf_man.buffer_pool = calloc(num_buf, sizeof(buffer_structure));
+	buf_man.hash_table = calloc(num_buf, sizeof(buffer_hashframe));
 	if (buf_man.buffer_pool == NULL)
 		return -1;
 	for (int i = 0; i < num_buf; i++) {
 		buf_man.buffer_pool[i].tid = -1;
 		buf_man.buffer_pool[i].cpo = -1;
+		buf_man.hash_table[i].tid = -1;
+		buf_man.hash_table[i].cpo = -1;
+		buf_man.hash_table[i].prev = NULL;
+		buf_man.hash_table[i].next = NULL;
 	}
 	for (int i = 0; i < MAX_TABLE; i++) {
 		buf_man.table_size[i] = 0;
@@ -32,9 +37,13 @@ int shutdown_db(void)
 		if (buf_man.buffer_pool[i].is_dirty)
 			write_buffer(&buf_man.buffer_pool[i]);
 	free(buf_man.buffer_pool);
+	free(buf_man.hash_table);
 	if (binary_search)
-		for (int i = 0; i < MAX_TABLE; i++)
+		for (int i = 0; i < MAX_TABLE; i++) {
 			free(buf_man.buffer_lookup[i]);
+			if (table[i].fd != -1)
+				close(table[i].fd);
+		}
 
 	return 0;
 }
@@ -94,6 +103,7 @@ int close_table(int table_id)
 			buf_man.table_size[i] = 0;
 		}
 	}
+	close(table[table_id].fd);
 	table[table_id].fd = -1;
 	return 0;
 }
@@ -108,6 +118,9 @@ buffer_structure* open_page(int table_id, off_t po)
 	// printf("open_page (%d %"PRId64")\n", table_id, po);
 	buffer_structure *ret = NULL;
 	int bid = buf_man.last_buf;
+	int hashing = (po/PAGESIZE) % buf_man.capacity;
+	buffer_hashframe *hf;
+
 	if (binary_search) {
 		int loc = bs_buffer(table_id, po);
 		if (loc != -1) {
@@ -116,15 +129,32 @@ buffer_structure* open_page(int table_id, off_t po)
 			return &buf_man.buffer_pool[loc];
 		}
 	}
+	// else {
+	// 	for (int i = 0; i < buf_man.capacity; i++) {
+	// 		if (buf_man.buffer_pool[i].tid == table_id && buf_man.buffer_pool[i].cpo == po) {
+	// 			buf_man.buffer_pool[i].refbit = true;
+	// 			buf_man.buffer_pool[i].pin_count += 1;
+	// 			return &buf_man.buffer_pool[i];
+	// 		}
+	// 	}
+	// }
 	else {
-		for (int i = 0; i < buf_man.capacity; i++) {
-			if (buf_man.buffer_pool[i].tid == table_id && buf_man.buffer_pool[i].cpo == po) {
-				buf_man.buffer_pool[i].refbit = true;
-				buf_man.buffer_pool[i].pin_count += 1;
-				return &buf_man.buffer_pool[i];
+		hf = &buf_man.hash_table[hashing];
+		int loc = -1;
+		while(hf != NULL) {
+			if (hf->tid == table_id && hf->cpo == po) {
+				loc = hf->buf_loc;
+				break;
 			}
+			hf = hf->next;
+		}
+		if (loc != -1) {
+			buf_man.buffer_pool[loc].refbit = true;
+			buf_man.buffer_pool[loc].pin_count += 1;
+			return &buf_man.buffer_pool[loc];
 		}
 	}
+
 
 	while(ret == NULL) {
 		bid = (bid + 1) % buf_man.capacity;
@@ -137,6 +167,8 @@ buffer_structure* open_page(int table_id, off_t po)
 					insert_buffer(table_id, po, bid);
 				}
 			}
+			delete_hash(buf_man.buffer_pool[bid].tid, buf_man.buffer_pool[bid].cpo);
+			insert_hash(table_id, po, bid);
 			if (buf_man.buffer_pool[bid].is_dirty)
 				write_buffer(&buf_man.buffer_pool[bid]);
 			pread(table[table_id].fd, &buf_man.buffer_pool[bid], PAGESIZE, po);
@@ -228,6 +260,40 @@ void add_free_page(int table_id, off_t page_loc)
 	headerP->fpo = page_loc;
 	drop_pincount(headerP, true);
 	drop_pincount(new_free_page, true);
+}
+
+void insert_hash(int tid, int64_t cpo, int loc)
+{
+	int hashing = (cpo/PAGESIZE) % buf_man.capacity;
+	buffer_hashframe *new_hf = malloc(sizeof(buffer_hashframe));
+	buffer_hashframe *temp_hf = buf_man.hash_table[hashing].next;
+
+	new_hf->tid = tid; new_hf->cpo = cpo; new_hf->buf_loc = loc;
+	if (temp_hf != NULL)
+		temp_hf->prev = new_hf;
+	new_hf->next = buf_man.hash_table[hashing].next;
+	new_hf->prev = &buf_man.hash_table[hashing];
+	buf_man.hash_table[hashing].next = new_hf;
+}
+
+void delete_hash(int tid, int64_t cpo)
+{
+	// printf("delete_buffer(%d %"PRId64")\n", tid, cpo); 
+	if (tid == -1 || cpo == -1)
+		return;
+	int hashing = (cpo/PAGESIZE) % buf_man.capacity;
+	buffer_hashframe *hf = buf_man.hash_table[hashing].next;
+	while (hf != NULL) {
+		if (hf->tid == tid && hf->cpo == cpo)
+			break;
+		hf = hf->next;
+	}
+	buffer_hashframe *prevhf = hf->prev, *nexthf = hf->next;
+	prevhf->next = hf->next;
+	if (nexthf != NULL)
+		nexthf->prev = hf->prev;
+
+	free(hf);
 }
 
 //binary search on buffer to locate page if exist
