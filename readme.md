@@ -45,6 +45,41 @@ please check [bpt.pdf][pdflink] for more information about the codes and impleme
 
 # Performance
 
+## Insertion Performance
+![Sequential Insertion](./Chart/Sequential Insertion.jpeg)
+![Random Insertion](./Chart/Random Insertion.jpeg)
+
+## Deletion Performance
+![Sequential Deletion](./Chart/Sequential Deletion.jpeg)
+![Random Deletion](./Chart/Random deletion.jpeg)
+
+As you can see from the chart, any kind of buffer implementation enhances performance to 1.3 ~ 12 times dependion on the workload.
+
+I've tried 3 diffrent search algorithm for Buffer Manager.
+
+* Naive Linear Search Algorithm
+
+	The problem with linear search algorithm is that it ALWAYS search ALL the buffers to find if matching buffer frame exists. Thus it takes O( N ).
+	If the # of buffer frames goes big, the overhead of searching decrease the 	performance significantly.
+
+
+* Binary Search Algorithm
+
+	Binary Search algorithm is what I came up after linear search. Binary Search algorithm takes only O ( lgN ) for search.
+	But in order to use binary search on the array, array must be in sorted form.
+	And if buffer is nearly full, overhead to keep array in sorted form decrease the performance since it takes O ( size ) to sort the array.
+
+* Hash Table
+	
+	It was hard to consider how to implement hash table for the buffer management.
+	If the hash table is fully created, the size of hash table exceeds the size of buffer pool. Thus the size of hash table is set to the size of buffer pool. And chaining hash table was implemented.
+	Since linked list does not ensure the consecutive memory allocation, and it always have to allocate/free memory. The overhead of hash table may exceed other implementation with small buffer pool size. But it is off by a little.
+	And if the size of buffer pool gets bigger and bigger, the performance of hash table is unmatachable to any other implementation.
+	Therefore, hash table is the final solution I've came up with.
+
+Please check below for the further data.
+Test Environment : Mid-2013 Macbook Air with SSD
+
 ### Project2 - No Buffer
 	-------------- sequential Insert Test --------------
 	Large(2^20) Test
