@@ -59,7 +59,7 @@ int open_table(char *pathname)
 		printf("Table is full\n");
 		return -1;
 	}
-	table[tid].fd = open(pathname, O_RDWR | O_CREAT | O_EXCL | O_SYNC, 0777);
+	table[tid].fd = open(pathname, O_RDWR | O_CREAT | O_EXCL, 0777);
 	buf_man.table_size[tid] = 0;
 	header_page *headerP = (header_page*)calloc(1, PAGESIZE);
 
@@ -78,7 +78,7 @@ int open_table(char *pathname)
 		return tid;
 	}
 
-	table[tid].fd = open(pathname, O_RDWR | O_SYNC);
+	table[tid].fd = open(pathname, O_RDWR);
 	if (table[tid].fd > 0) {
 		return tid;
 	}
