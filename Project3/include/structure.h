@@ -80,6 +80,8 @@ typedef struct buffer_manager {
 	//buffer location is sorted and will be used for binary search
 	struct buf_lookup *buffer_lookup[10];
 	struct buffer_structure *buffer_pool;
+	//hash_table
+	struct buffer_hashframe *hash_table;
 } buffer_manager;
 
 typedef struct table_info {
@@ -90,6 +92,14 @@ typedef struct buf_lookup {
 	int64_t cpo;
 	int buf_loc;
 } buf_lookup;
+
+typedef struct buffer_hashframe {
+	int tid;
+	int64_t cpo;
+	int buf_loc;
+	struct buffer_hashframe *prev;
+	struct buffer_hashframe *next;
+} buffer_hashframe;
 
 //structures for the queue
 typedef struct qnode {

@@ -31,6 +31,10 @@ void set_dirty(buffer_structure *cur_buf);
 buffer_structure* get_free_page(int table_id, off_t ppo, off_t *page_loc, int is_leaf);
 void add_free_page(int table_id, off_t page_loc);
 
+//Functions for Buffer Hash Table
+void insert_hash(int tid, int64_t cpo, int loc);
+void delete_hash(int tid, int64_t cpo);
+
 //Functions for Buffer Binary Search
 int bs_buffer(int tid, int64_t cpo);
 void insert_buffer(int tid, int64_t cpo, int loc);
