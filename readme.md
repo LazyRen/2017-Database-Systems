@@ -78,7 +78,12 @@ I've tried 3 diffrent search algorithm for Buffer Manager.
 	Therefore, hash table is the final solution I've came up with.
 
 Please check below for the further data.
+
 Test Environment : Mid-2013 Macbook Air with SSD
+
+Following tests were done with O_SYNC flag on.
+
+The current project3 pushed to git does not have O_SYNC flag thus the speed of any write operation is much faster.
 
 ### Project2 - No Buffer
 	-------------- sequential Insert Test --------------
