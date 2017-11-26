@@ -108,6 +108,142 @@ int close_table(int table_id)
 	return 0;
 }
 
+int join_table(int table_id_1, int table_id_2, char *pathname)
+{
+	FILE *result_fp = fopen(pathname, "w");
+	if (result_fp == NULL) {
+		printf("failed to open join result file\n");
+		return -1;
+	}
+	int64_t count_result = 0;
+	buffer_structure *headerP_1 = open_page(table_id_1, SEEK_SET);
+	buffer_structure *headerP_2 = open_page(table_id_2, SEEK_SET);
+
+	if (headerP_1->rpo == 0 || headerP_2->rpo == 0) {
+		printf("One table is empty\n");
+		return -1;
+	}
+	buffer_structure *table_1 = open_page(table_id_1, headerP_1->rpo);
+	buffer_structure *table_2 = open_page(table_id_2, headerP_2->rpo);
+	drop_pincount(headerP_1, false);
+	drop_pincount(headerP_2, false);
+	
+	//get left most leaf page from both tables
+	while (!table_1->is_leaf) {
+		off_t npo = table_1->expo;
+		drop_pincount(table_1, false);
+		table_1 = open_page(table_id_1, npo);
+	}
+	while (!table_2->is_leaf) {
+		off_t npo = table_2->expo;
+		drop_pincount(table_2, false);
+		table_2 = open_page(table_id_2, npo);
+	}
+
+	buffer_structure *result_cache = get_avail_buffer();
+	bool done = false;
+	int r = 0, s = 0, num_keys = 0;
+	off_t npo;
+	while (true) {
+		while (table_1->records[r].key < table_2->records[s].key) {
+			r++;
+			if (table_1->num_keys <= r) {
+				if (table_1->expo == 0) {
+					done = true;
+					break;
+				}
+				else {
+					npo = table_1->expo;
+					drop_pincount(table_1, false);
+					table_1 = open_page(table_id_1, npo);
+					r = 0;
+				}
+			}
+		}
+		if (done) break;
+
+		while (table_1->records[r].key > table_2->records[s].key) {
+			s++;
+			if (table_2->num_keys <= s) {
+				if (table_2->expo == 0) {
+					done = true;
+					break;
+				}
+				else {
+					npo = table_2->expo;
+					drop_pincount(table_2, false);
+					table_2 = open_page(table_id_2, npo);
+					s = 0;
+				}
+			}
+		}
+		if (done) break;
+
+		if (table_1->records[r].key == table_2->records[s].key) {
+			count_result += 1;
+			result_cache->join_a[num_keys].key = table_1->records[r].key;
+			strcpy(result_cache->join_a[num_keys].value, table_1->records[r].value);
+			result_cache->join_b[num_keys].key = table_2->records[s].key;
+			strcpy(result_cache->join_b[num_keys].value, table_2->records[s].value);
+			num_keys++;
+			if (num_keys == 16) {
+				flush_result(result_fp, result_cache, num_keys);
+				result_cache = get_avail_buffer();
+				num_keys = 0;
+			}
+			r++;
+		}
+	}
+	flush_result(result_fp, result_cache, num_keys);
+	fclose(result_fp);
+	// printf("%"PRId64" joined\n", count_result);
+	return 0;
+}
+
+buffer_structure* get_avail_buffer()
+{
+	buffer_structure *ret = NULL;
+	int bid = buf_man.last_buf;
+
+	while(ret == NULL) {
+		bid = (bid + 1) % buf_man.capacity;
+		if (buf_man.buffer_pool[bid].pin_count == 0 && buf_man.buffer_pool[bid].refbit == false) {
+			if (binary_search)
+				delete_buffer(buf_man.buffer_pool[bid].tid, buf_man.buffer_pool[bid].cpo);
+			delete_hash(buf_man.buffer_pool[bid].tid, buf_man.buffer_pool[bid].cpo);
+			if (buf_man.buffer_pool[bid].is_dirty)
+				write_buffer(&buf_man.buffer_pool[bid]);
+			memset(&buf_man.buffer_pool[bid], 0, PAGESIZE);
+
+			buf_man.buffer_pool[bid].tid = -1;
+			buf_man.buffer_pool[bid].cpo = -1;
+			buf_man.buffer_pool[bid].is_dirty = false;
+			buf_man.buffer_pool[bid].refbit = true;
+			buf_man.buffer_pool[bid].pin_count = 1;
+			buf_man.last_buf = bid;
+			ret = &buf_man.buffer_pool[bid];
+		}
+		else if (buf_man.buffer_pool[bid].pin_count == 0 && buf_man.buffer_pool[bid].refbit == true)
+			buf_man.buffer_pool[bid].refbit = false;
+	}
+	// printf("new buffer set at %d with tid: %d po: %"PRId64"\n", bid, table_id, po);
+	return ret;
+}
+
+void flush_result(FILE *result_fp, buffer_structure *result_cache, int num_keys)
+{
+
+	for (int i = 0; i < num_keys; i++) {
+		fprintf(result_fp, "%"PRId64",%s,", result_cache->join_a[i].key, result_cache->join_a[i].value);
+		fprintf(result_fp, "%"PRId64",%s\n", result_cache->join_b[i].key, result_cache->join_b[i].value);
+	}
+
+	memset(result_cache, 0, PAGESIZE);
+	result_cache->refbit = false;
+	result_cache->pin_count = 0;
+	return;
+}
+
 //read and open the page from the disk.
 //must free page after use.
 //If page is alread in buffer pool, simpl returns it

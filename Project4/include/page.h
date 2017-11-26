@@ -23,6 +23,10 @@ int shutdown_db(void);
 int open_table(char *pathname);
 int close_table(int table_id);
 
+//Join Table
+int join_table(int table_id_1, int table_id_2, char *pathname);
+buffer_structure* get_avail_buffer();
+void flush_result(FILE *result_fp, buffer_structure *result_cache, int num_keys);
 
 buffer_structure* open_page(int table_id, off_t po);
 void write_buffer(buffer_structure *cur_buf);
