@@ -64,6 +64,10 @@ typedef struct buffer_structure {
 				record records[31];
 			};
 		};
+		struct {
+			record join_a[16];
+			record join_b[16];
+		};
 	};
 	int tid;
 	off_t cpo; //current page offset
