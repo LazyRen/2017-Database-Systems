@@ -22,6 +22,7 @@ The following commands are available to insert, delete or search data.
 	find_and_print(table_id, key)
 	insert(table_id, key, value)
 	delete(table_id, key)
+	join_table(table_id_1, table_id_2, pathname)
 
 * **You must initialize DB** by calling init_db(num_buf).
 Number of buffers to be used will be decided according to the num_buf variable.
@@ -37,6 +38,8 @@ thus it is set to false as default.
 * Each leaf page can hold up to 31 recordes.
 * Hash Table has been implemented for the buffer manager.
 It significiently increase the performance of buffer manager compare to linear/binary search with any given set of commands. Check performace for more info.
+* Join_table function will do **equi-join** using sort-merge join. Since both tables are already sortred,
+sorting process is not required. Therefore avg. time complexity of join_table is O([R] + [S])
 
 # Code Guidance
 
@@ -84,6 +87,8 @@ Test Environment : Mid-2013 Macbook Air with SSD
 Following tests were done with O_SYNC flag on.
 
 The current project3 pushed to git does not have O_SYNC flag thus the speed of any write operation is much faster.
+
+Test code(python) was provided by CheonChangGeun.
 
 ### Project2 - No Buffer
 	-------------- sequential Insert Test --------------

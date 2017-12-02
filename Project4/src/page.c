@@ -251,7 +251,6 @@ void flush_result(FILE *result_fp, buffer_structure *result_cache, int num_keys)
 //If buffer pool is full, find idle buffer page based on CLOCK policy and change it.
 buffer_structure* open_page(int table_id, off_t po)
 {
-	// printf("open_page (%d %"PRId64")\n", table_id, po);
 	buffer_structure *ret = NULL;
 	int bid = buf_man.last_buf;
 	int hashing = (po/PAGESIZE) % buf_man.capacity;
