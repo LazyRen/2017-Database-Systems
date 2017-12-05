@@ -38,8 +38,8 @@ thus it is set to false as default.
 * Each leaf page can hold up to 31 recordes.
 * Hash Table has been implemented for the buffer manager.
 It significiently increase the performance of buffer manager compare to linear/binary search with any given set of commands. Check performace for more info.
-* Join_table function will do **equi-join** using sort-merge join. Since both tables are already sortred,
-sorting process is not required. Therefore avg. time complexity of join_table is O([R] + [S])
+* Join_table function will do **equi-join** using **sort-merge join**. Since both tables are already sortred,
+sorting process is not required. Therefore avg. time complexity of join_table is O([R] + [S]).
 
 # Code Guidance
 
@@ -56,7 +56,7 @@ please check [bpt.pdf][pdflink] for more information about the codes and impleme
 ![Sequential Deletion](./Chart/Sequential Deletion.jpeg)
 ![Random Deletion](./Chart/Random deletion.jpeg)
 
-As you can see from the chart, any kind of buffer implementation enhances performance to 1.3 ~ 12 times dependion on the workload.
+As you can see from the chart, any kind of buffer implementation enhances performance to 1.3 ~ 12 times depending on the workload.
 
 I've tried 3 diffrent search algorithm for Buffer Manager.
 
