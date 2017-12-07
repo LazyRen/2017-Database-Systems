@@ -9,7 +9,7 @@
 #define toggle_bs false
 
 buffer_manager buf_man;
-table_info table[MAX_TABLE];
+table_info table[MAX_TABLE + 1];
 bool binary_search;
 
 //Utility Functions
@@ -23,7 +23,7 @@ int shutdown_db(void);
 int open_table(char *pathname);
 int close_table(int table_id);
 
-//Join Table
+//Functions for Join Table Operation
 int join_table(int table_id_1, int table_id_2, char *pathname);
 buffer_structure* get_avail_buffer();
 void flush_result(FILE *result_fp, buffer_structure *result_cache, int num_keys);
@@ -44,6 +44,11 @@ int bs_buffer(int tid, int64_t cpo);
 void insert_buffer(int tid, int64_t cpo, int loc);
 void delete_buffer(int tid, int64_t cpo);
 void modify_buffer(int tid, int64_t old_cpo, int64_t new_cpo, int bid);
+
+//Functions for Transaction - Revory 
+int begin_transaction();
+int commit_transaction();
+int abort_transaction();
 
 //Functions that will be used for print_tree
 void init_queue(queue *q);

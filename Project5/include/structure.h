@@ -4,12 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <inttypes.h>
-#include <fcntl.h>
 #include <string.h>
+#include <inttypes.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <errno.h>
 
 //base structure for all pages
@@ -17,7 +17,8 @@
 	off_t ppo;\
 	int is_leaf;\
 	int num_keys;\
-	char ph_reserved[104];\
+	off_t lsn;
+	char ph_reserved[96];\
 	off_t expo;\
 }
 //off_t expo: extra page offset points to
@@ -104,6 +105,18 @@ typedef struct buffer_hashframe {
 	struct buffer_hashframe *prev;
 	struct buffer_hashframe *next;
 } buffer_hashframe;
+
+typedef struct log_record {
+	off_t lsn;
+	off_t plsn;
+	int tid;
+	int type;
+	int cpn;
+	int so;
+	int dlen;
+	char[120] old_image;
+	char[120] new_image;
+} log_record;
 
 //structures for the queue
 typedef struct qnode {

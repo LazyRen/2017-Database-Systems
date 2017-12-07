@@ -36,4 +36,6 @@ void coalesce_nodes(buffer_structure *cur_page, buffer_structure *neighbor, int 
 void redistribute_nodes(buffer_structure *cur_page, buffer_structure *neighbor, int neighbor_index, int64_t k_prime, int k_prime_index);
 void delete_entry(buffer_structure *cur_page, int64_t key);
 int delete(int table_id, int64_t key);
+
+int update(int table_id, int64_t key, char *value);
 #endif /* __BPT_H__*/
