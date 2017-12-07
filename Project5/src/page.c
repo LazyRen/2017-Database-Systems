@@ -51,12 +51,14 @@ int shutdown_db(void)
 int open_table(char *pathname)
 {
 	int temp, tid;
-	for (tid = 0; tid < MAX_TABLE; tid++) {
-		if (table[tid].fd == -1)
-			break;
+	tid = pathname[strlen(pathname) - 2] - '0';
+	if (tid > 10 || tid < 0) {
+		printf("failed to retrieve tid\n");
+		return -1;
 	}
-	if (tid == MAX_TABLE) {
-		printf("Table is full\n");
+	if (table[tid].fd != -1) {
+		printf("Table is already occupied\n");
+		printf("Make sure to call close_table() for data[%d]\n", tid);
 		return -1;
 	}
 	table[tid].fd = open(pathname, O_RDWR | O_CREAT | O_EXCL, 0777);
@@ -79,9 +81,8 @@ int open_table(char *pathname)
 	}
 
 	table[tid].fd = open(pathname, O_RDWR);
-	if (table[tid].fd > 0) {
+	if (table[tid].fd > 0)
 		return tid;
-	}
 
 	printf("Failed to open %s\n", pathname);
 	return -1;

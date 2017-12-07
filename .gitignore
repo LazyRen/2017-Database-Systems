@@ -15,3 +15,5 @@ Project2/log.txt
 *.bak
 *.pages
 *.key
+*.o
+*.a
