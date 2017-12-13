@@ -7,11 +7,9 @@
 
 #define PAGESIZE (4096)
 #define MAX_TABLE 10
-#define toggle_bs false
 
 buffer_manager buf_man;
 table_info table[MAX_TABLE + 1];
-bool binary_search;
 
 //DB & Table Related Functions
 int init_db(int num_buf);
@@ -34,12 +32,6 @@ void add_free_page(int table_id, off_t page_loc);
 //Functions for Buffer Hash Table
 void insert_hash(int tid, int64_t cpo, int loc);
 void delete_hash(int tid, int64_t cpo);
-
-//Functions for Buffer Binary Search
-int bs_buffer(int tid, int64_t cpo);
-void insert_buffer(int tid, int64_t cpo, int loc);
-void delete_buffer(int tid, int64_t cpo);
-void modify_buffer(int tid, int64_t old_cpo, int64_t new_cpo, int bid);
 
 //Utility Functions
 void show_buffer_manager(void);

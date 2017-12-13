@@ -4,13 +4,6 @@ int init_db (int num_buf)
 {
 	buf_man.capacity = num_buf;
 	buf_man.last_buf = -1;
-	if (num_buf >= 100 && toggle_bs)
-		binary_search = true;
-	else
-		binary_search = false;
-	if (binary_search)
-		for (int i = 0; i < MAX_TABLE; i++)
-			buf_man.buffer_lookup[i] = calloc(num_buf, sizeof(buf_lookup));
 
 	buf_man.buffer_pool = calloc(num_buf, sizeof(buffer_structure));
 	buf_man.hash_table = calloc(num_buf, sizeof(buffer_hashframe));
@@ -25,7 +18,6 @@ int init_db (int num_buf)
 		buf_man.hash_table[i].next = NULL;
 	}
 	for (int i = 0; i < MAX_TABLE; i++) {
-		buf_man.table_size[i] = 0;
 		table[i].fd = -1;
 	}
 	return 0;
@@ -38,12 +30,6 @@ int shutdown_db(void)
 			write_buffer(&buf_man.buffer_pool[i]);
 	free(buf_man.buffer_pool);
 	free(buf_man.hash_table);
-	if (binary_search)
-		for (int i = 0; i < MAX_TABLE; i++) {
-			free(buf_man.buffer_lookup[i]);
-			if (table[i].fd != -1)
-				close(table[i].fd);
-		}
 
 	return 0;
 }
@@ -60,7 +46,6 @@ int open_table(char *pathname)
 		return -1;
 	}
 	table[tid].fd = open(pathname, O_RDWR | O_CREAT | O_EXCL, 0777);
-	buf_man.table_size[tid] = 0;
 	header_page *headerP = (header_page*)calloc(1, PAGESIZE);
 
 	if (table[tid].fd > 0) {
@@ -207,8 +192,6 @@ buffer_structure* get_avail_buffer()
 	while(ret == NULL) {
 		bid = (bid + 1) % buf_man.capacity;
 		if (buf_man.buffer_pool[bid].pin_count == 0 && buf_man.buffer_pool[bid].refbit == false) {
-			if (binary_search)
-				delete_buffer(buf_man.buffer_pool[bid].tid, buf_man.buffer_pool[bid].cpo);
 			delete_hash(buf_man.buffer_pool[bid].tid, buf_man.buffer_pool[bid].cpo);
 			if (buf_man.buffer_pool[bid].is_dirty)
 				write_buffer(&buf_man.buffer_pool[bid]);
@@ -253,54 +236,24 @@ buffer_structure* open_page(int table_id, off_t po)
 	buffer_structure *ret = NULL;
 	int bid = buf_man.last_buf;
 	int hashing = (po/PAGESIZE) % buf_man.capacity;
-	buffer_hashframe *hf;
-
-	if (binary_search) {
-		int loc = bs_buffer(table_id, po);
-		if (loc != -1) {
-			buf_man.buffer_pool[loc].refbit = true;
-			buf_man.buffer_pool[loc].pin_count += 1;
-			return &buf_man.buffer_pool[loc];
+	buffer_hashframe *hf = &buf_man.hash_table[hashing];
+	int loc = -1;
+	while(hf != NULL) {
+		if (hf->tid == table_id && hf->cpo == po) {
+			loc = hf->buf_loc;
+			break;
 		}
+		hf = hf->next;
 	}
-	// else {
-	// 	for (int i = 0; i < buf_man.capacity; i++) {
-	// 		if (buf_man.buffer_pool[i].tid == table_id && buf_man.buffer_pool[i].cpo == po) {
-	// 			buf_man.buffer_pool[i].refbit = true;
-	// 			buf_man.buffer_pool[i].pin_count += 1;
-	// 			return &buf_man.buffer_pool[i];
-	// 		}
-	// 	}
-	// }
-	else {
-		hf = &buf_man.hash_table[hashing];
-		int loc = -1;
-		while(hf != NULL) {
-			if (hf->tid == table_id && hf->cpo == po) {
-				loc = hf->buf_loc;
-				break;
-			}
-			hf = hf->next;
-		}
-		if (loc != -1) {
-			buf_man.buffer_pool[loc].refbit = true;
-			buf_man.buffer_pool[loc].pin_count += 1;
-			return &buf_man.buffer_pool[loc];
-		}
+	if (loc != -1) {
+		buf_man.buffer_pool[loc].refbit = true;
+		buf_man.buffer_pool[loc].pin_count += 1;
+		return &buf_man.buffer_pool[loc];
 	}
-
 
 	while(ret == NULL) {
 		bid = (bid + 1) % buf_man.capacity;
 		if (buf_man.buffer_pool[bid].pin_count == 0 && buf_man.buffer_pool[bid].refbit == false) {
-			if (binary_search) {
-				if (buf_man.buffer_pool[bid].tid == table_id)
-					modify_buffer(table_id, buf_man.buffer_pool[bid].cpo, po, bid);
-				else {
-					delete_buffer(buf_man.buffer_pool[bid].tid, buf_man.buffer_pool[bid].cpo);
-					insert_buffer(table_id, po, bid);
-				}
-			}
 			delete_hash(buf_man.buffer_pool[bid].tid, buf_man.buffer_pool[bid].cpo);
 			insert_hash(table_id, po, bid);
 			if (buf_man.buffer_pool[bid].is_dirty)
@@ -428,119 +381,6 @@ void delete_hash(int tid, int64_t cpo)
 		nexthf->prev = hf->prev;
 
 	free(hf);
-}
-
-//binary search on buffer to locate page if exist
-int bs_buffer(int tid, int64_t cpo)
-{
-	int l = 0, m , h = buf_man.table_size[tid] - 1;
-	int ret = -1;
-	while (l <= h && ret == -1) {
-		m = (h + l) / 2;
-		if (buf_man.buffer_lookup[tid][m].cpo == cpo)
-			ret = buf_man.buffer_lookup[tid][m].buf_loc;
-		else if (buf_man.buffer_lookup[tid][m].cpo < cpo)
-			l = m + 1;
-		else
-			h = m - 1;
-	}
-	// printf("bs_buffer ret: %d\n", ret);
-	return ret;
-}
-
-//sort function for the binary search
-void insert_buffer(int tid, int64_t cpo, int loc)
-{
-	int i = buf_man.table_size[tid] - 1;
-	if (buf_man.table_size[tid] == 0) {
-		buf_man.buffer_lookup[tid][0].cpo = cpo;
-		buf_man.buffer_lookup[tid][0].buf_loc = loc;
-	}
-	else {
-		while (0 <= i) {
-			if (buf_man.buffer_lookup[tid][i].cpo > cpo) {
-				buf_man.buffer_lookup[tid][i + 1].cpo = buf_man.buffer_lookup[tid][i].cpo;
-				buf_man.buffer_lookup[tid][i + 1].buf_loc = buf_man.buffer_lookup[tid][i].buf_loc;
-			}
-			else {
-				break;
-			}
-			i--;
-		}
-		buf_man.buffer_lookup[tid][i + 1].cpo = cpo;
-		buf_man.buffer_lookup[tid][i + 1].buf_loc = loc;
-	}
-	// printf("insert_buffer(%d %"PRId64" %d) at %d\n", tid, cpo, loc, i + 1);
-	buf_man.table_size[tid] += 1;
-}
-
-//sort function for the binary search
-void delete_buffer(int tid, int64_t cpo)
-{
-	// printf("delete_buffer(%d %"PRId64")\n", tid, cpo);
-	if (tid == -1 || cpo == -1)
-		return;
-	int loc = -1;
-	int l = 0, m, h = buf_man.table_size[tid] - 1;
-
-	while (l <= h && loc == -1) {
-		m = (h + l) / 2;
-		if (buf_man.buffer_lookup[tid][m].cpo == cpo)
-			loc = m;
-		else if (buf_man.buffer_lookup[tid][m].cpo < cpo)
-			l = m + 1;
-		else
-			h = m - 1;
-	}
-
-	if (loc == -1) {
-		printf("delete_buffer error\n");
-		exit(EXIT_FAILURE);
-	}
-
-	while (loc < buf_man.table_size[tid] - 1) {
-		buf_man.buffer_lookup[tid][loc].cpo = buf_man.buffer_lookup[tid][loc + 1].cpo;
-		buf_man.buffer_lookup[tid][loc].buf_loc = buf_man.buffer_lookup[tid][loc + 1].buf_loc;
-		loc++;
-	}
-
-	buf_man.table_size[tid] -= 1;
-}
-
-//sort function for the binary search
-void modify_buffer(int tid, int64_t old_cpo, int64_t new_cpo, int bid)
-{
-	int loc = -1;
-	int l = 0, m, h = buf_man.table_size[tid] - 1;
-
-	while (l <= h && loc == -1) {
-		m = (h + l) / 2;
-		if (buf_man.buffer_lookup[tid][m].cpo == old_cpo)
-			loc = m;
-		else if (buf_man.buffer_lookup[tid][m].cpo < old_cpo)
-			l = m + 1;
-		else
-			h = m - 1;
-	}
-
-	if (loc == -1) {
-		printf("delete_buffer error\n");
-		exit(EXIT_FAILURE);
-	}
-
-
-	while (loc < buf_man.table_size[tid] - 1 && buf_man.buffer_lookup[tid][loc + 1].cpo < new_cpo) {
-		buf_man.buffer_lookup[tid][loc].cpo = buf_man.buffer_lookup[tid][loc + 1].cpo;
-		buf_man.buffer_lookup[tid][loc].buf_loc = buf_man.buffer_lookup[tid][loc + 1].buf_loc;
-		loc++;
-	}
-	while (loc > 0 && buf_man.buffer_lookup[tid][loc - 1].cpo > new_cpo) {
-		buf_man.buffer_lookup[tid][loc].cpo = buf_man.buffer_lookup[tid][loc - 1].cpo;
-		buf_man.buffer_lookup[tid][loc].buf_loc = buf_man.buffer_lookup[tid][loc - 1].buf_loc;
-		loc--;
-	}
-	buf_man.buffer_lookup[tid][loc].cpo = new_cpo;
-	buf_man.buffer_lookup[tid][loc].buf_loc = bid;
 }
 
 void show_buffer_manager(void)
