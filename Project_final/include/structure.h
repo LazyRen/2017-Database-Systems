@@ -12,12 +12,19 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+//Transaction Type
+#define BEGIN 0
+#define UPDATE 1
+#define COMMIT 2
+#define ABORT 3
+#define END 4
+
 //base structure for all pages
 #define page_header {\
 	off_t ppo;\
 	int is_leaf;\
 	int num_keys;\
-	off_t lsn;
+	off_t lsn;\
 	char ph_reserved[96];\
 	off_t expo;\
 }
@@ -53,10 +60,11 @@ typedef struct page {
 typedef struct buffer_structure {
 	union {
 		struct {
-			off_t fpo;//free page offset
-			off_t rpo;//root page offset
+			off_t fpo;				//free page offset
+			off_t rpo;				//root page offset
 			int64_t num_pages;
-			char reserved[4072];
+			off_t hlsn;				//header page lsn
+			char reserved[4064];
 		};
 		struct {
 			struct page_header;
@@ -106,21 +114,38 @@ typedef struct buffer_hashframe {
 	struct buffer_hashframe *next;
 } buffer_hashframe;
 
-typedef struct log_record {
-	off_t lsn;
-	off_t plsn;
-	int tid;
-	int type;
-	int cpn;
-	int so;
-	int dlen;
-	char[120] old_image;
-	char[120] new_image;
-} log_record;
+typedef struct log_manager {
+	int fd;							//log file fd
+	off_t flushed_lsn;
+	off_t last_lsn;
+	int current_trx_id;
+	int last_trx_id;
+	struct log_structure *log_spt;		//pointer to the front of the in-memory log
+	struct log_structure *log_ept;		//pointer to the end of the in-menory log
+} log_manager;
+
+typedef struct log_structure {
+	struct {//296 bytes
+		off_t lsn;
+		off_t plsn;
+		int trx_id;
+		int type;
+		int table_id;
+		int cpn;	//current page number == offset / 4096
+		int so;		//start offset of the record
+		int data_len;
+		int64_t old_key;
+		char old_image[120];
+		int64_t new_key;
+		char new_image[120];
+	};
+	struct log_structure *prev;
+	struct log_structure *next;
+} log_structure;
 
 //structures for the queue
 typedef struct qnode {
-	off_t po;
+	off_t po;			//page offset
 	struct qnode *next;
 } qnode;
 

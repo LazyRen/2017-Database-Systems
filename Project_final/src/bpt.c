@@ -903,3 +903,42 @@ int delete(int table_id, int64_t key) {
 	drop_pincount(key_leaf, true);
 	return 0;
 }
+
+int update(int table_id, int64_t key, char *value)
+{
+	int i = 0;
+	off_t leaf_loc;
+	buffer_structure *leaf;
+	char *val;
+
+	if ((val = find(table_id, key)) == NULL)
+		return -1;
+
+	buffer_structure *headerP = open_page(table_id, SEEK_SET);
+	leaf = find_leaf(headerP, table_id, &leaf_loc, key);
+	drop_pincount(headerP, false);
+
+	for (i = 0; i < leaf->num_keys; i++) {
+		if (leaf->records[i].key == key)
+			break;
+	}
+
+	if (log_man.current_trx_id != -1) {
+		log_structure *tmp_structure = create_log(UPDATE);
+		tmp_structure->table_id = table_id;
+		tmp_structure->cpn = (int)(leaf_loc / PAGESIZE);
+		tmp_structure->so = (i+1) * 128;
+		tmp_structure->old_key = key;
+		strcpy(tmp_structure->old_image, leaf->records[i].value);
+		tmp_structure->new_key = key;
+		strcpy(tmp_structure->new_image, value);
+		add_log(tmp_structure);
+		leaf->lsn = log_man.last_lsn;
+	}
+
+	strcpy(leaf->records[i].value, value);
+	free(val);
+	drop_pincount(leaf, true);
+
+	return 0;
+}

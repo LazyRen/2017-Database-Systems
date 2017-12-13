@@ -2,6 +2,7 @@
 #define __PAGE_H__
 
 #include "structure.h"
+#include "log_recovery.h"
 #include "bpt.h"
 
 #define PAGESIZE (4096)
@@ -11,11 +12,6 @@
 buffer_manager buf_man;
 table_info table[MAX_TABLE + 1];
 bool binary_search;
-
-//Utility Functions
-void show_buffer_manager(void);
-void print_page_info(buffer_structure *cur_page, int64_t *total_keys);
-void print_tree(int table_id);
 
 //DB & Table Related Functions
 int init_db(int num_buf);
@@ -45,10 +41,10 @@ void insert_buffer(int tid, int64_t cpo, int loc);
 void delete_buffer(int tid, int64_t cpo);
 void modify_buffer(int tid, int64_t old_cpo, int64_t new_cpo, int bid);
 
-//Functions for Transaction - Revory 
-int begin_transaction();
-int commit_transaction();
-int abort_transaction();
+//Utility Functions
+void show_buffer_manager(void);
+void print_page_info(buffer_structure *cur_page, int64_t *total_keys);
+void print_tree(int table_id);
 
 //Functions that will be used for print_tree
 void init_queue(queue *q);
