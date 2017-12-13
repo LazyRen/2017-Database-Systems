@@ -93,6 +93,8 @@ int close_table(int table_id)
 		return -1;
 	for (int i = 0; i < buf_man.capacity; i++) {
 		if (buf_man.buffer_pool[i].tid == table_id) {
+			if (binary_search)
+				delete_buffer(table_id, buf_man.buffer_pool[i].cpo);
 			if (buf_man.buffer_pool[i].is_dirty)
 				write_buffer(&buf_man.buffer_pool[i]);
 			buf_man.buffer_pool[i].tid = -1;
