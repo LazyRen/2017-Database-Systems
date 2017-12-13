@@ -6,7 +6,7 @@
 
 #define PAGESIZE (4096)
 #define MAX_TABLE 10
-#define toggle_bs false
+#define toggle_bs true
 
 buffer_manager buf_man;
 table_info table[MAX_TABLE];
