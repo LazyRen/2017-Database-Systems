@@ -79,10 +79,6 @@ typedef struct buffer_structure {
 typedef struct buffer_manager {
 	int capacity;
 	int last_buf;
-	//if binary search is in use, this will tell how many buffers are in use for each table
-	int table_size[10];
-	//buffer location is sorted and will be used for binary search
-	struct buf_lookup *buffer_lookup[10];
 	struct buffer_structure *buffer_pool;
 	//hash_table
 	struct buffer_hashframe *hash_table;

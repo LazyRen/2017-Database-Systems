@@ -88,10 +88,6 @@ typedef struct buffer_structure {
 typedef struct buffer_manager {
 	int capacity;
 	int last_buf;
-	//if binary search is in use, this will tell how many buffers are in use for each table
-	int table_size[10];
-	//buffer location is sorted and will be used for binary search
-	struct buf_lookup *buffer_lookup[10];
 	struct buffer_structure *buffer_pool;
 	//hash_table
 	struct buffer_hashframe *hash_table;
@@ -100,11 +96,6 @@ typedef struct buffer_manager {
 typedef struct table_info {
 	int fd;
 } table_info;
-
-typedef struct buf_lookup {
-	int64_t cpo;
-	int buf_loc;
-} buf_lookup;
 
 typedef struct buffer_hashframe {
 	int tid;
@@ -115,7 +106,7 @@ typedef struct buffer_hashframe {
 } buffer_hashframe;
 
 typedef struct log_manager {
-	int fd;							//log file fd
+	int fd;								//log file fd
 	off_t flushed_lsn;
 	off_t last_lsn;
 	int current_trx_id;
