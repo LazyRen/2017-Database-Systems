@@ -6,9 +6,11 @@
 
 #define PAGESIZE (4096)
 #define MAX_TABLE 10
+#define toggle_bs false
 
 buffer_manager buf_man;
 table_info table[MAX_TABLE];
+bool binary_search;
 
 //Utility Functions
 void show_buffer_manager(void);
@@ -21,6 +23,7 @@ int shutdown_db(void);
 int open_table(char *pathname);
 int close_table(int table_id);
 
+
 buffer_structure* open_page(int table_id, off_t po);
 void write_buffer(buffer_structure *cur_buf);
 void drop_pincount(buffer_structure *cur_buf, bool dirty);
@@ -31,6 +34,12 @@ void add_free_page(int table_id, off_t page_loc);
 //Functions for Buffer Hash Table
 void insert_hash(int tid, int64_t cpo, int loc);
 void delete_hash(int tid, int64_t cpo);
+
+//Functions for Buffer Binary Search
+int bs_buffer(int tid, int64_t cpo);
+void insert_buffer(int tid, int64_t cpo, int loc);
+void delete_buffer(int tid, int64_t cpo);
+void modify_buffer(int tid, int64_t old_cpo, int64_t new_cpo, int bid);
 
 //Functions that will be used for print_tree
 void init_queue(queue *q);
