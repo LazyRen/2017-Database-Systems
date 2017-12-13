@@ -4,6 +4,8 @@ int init_db (int num_buf)
 {
 	buf_man.capacity = num_buf;
 	buf_man.last_buf = -1;
+	char logname[10] = "log.db";
+
 	if (num_buf >= 100 && toggle_bs)
 		binary_search = true;
 	else
@@ -28,6 +30,42 @@ int init_db (int num_buf)
 		buf_man.table_size[i] = 0;
 		table[i].fd = -1;
 	}
+	log_man.fd = -1;
+	log_man.fd = open(logname, O_RDWR | O_CREAT | O_EXCL | O_SYNC, 0777);
+	if (log_man.fd != -1) {//Log File does not exist
+		log_man.flushed_lsn = 0;
+		log_man.last_lsn = 0;
+		log_man.current_trx_id = -1;
+		log_man.last_trx_id = 0;
+		log_man.log_spt = NULL;
+		log_man.log_ept = NULL;
+	}
+		
+	else {//Do RECOVERY
+		log_man.fd = open(logname, O_RDWR | O_SYNC);
+		int cur_lsn = 0, loser_trx = -1;
+		log_structure *cur_log = calloc(1, sizeof(log_structure));
+		while(pread(log_man.fd, cur_log, LOGSIZE, cur_lsn) == LOGSIZE) {
+			cur_lsn = cur_log->lsn;
+			if (cur_log->type == BEGIN) {
+				loser_trx = cur_log->trx_id;
+				log_man.last_trx_id = cur_log->trx_id;
+				continue;
+			}
+			if (cur_log->type == ABORT)
+				continue;
+			if (cur_log->type == END || cur_log->type == COMMIT) {
+				loser_trx = -1;
+				continue;
+			}
+
+			recover(cur_log);
+		}
+		log_man.flushed_lsn = log_man.last_lsn = cur_lsn;
+		if (loser_trx != -1) //there is loser transaction
+			undo_trx(cur_lsn);
+		write_log(log_man.last_lsn);
+	}
 	return 0;
 }
 
@@ -41,8 +79,10 @@ int shutdown_db(void)
 	if (binary_search)
 		for (int i = 0; i < MAX_TABLE; i++) {
 			free(buf_man.buffer_lookup[i]);
-			if (table[i].fd != -1)
+			if (table[i].fd != -1) {
 				close(table[i].fd);
+				table[i].fd = -1;
+			}
 		}
 
 	return 0;
@@ -51,6 +91,7 @@ int shutdown_db(void)
 int open_table(char *pathname)
 {
 	int temp, tid;
+
 	tid = pathname[strlen(pathname) - 2] - '0';
 	if (tid > 10 || tid < 0) {
 		printf("failed to retrieve tid\n");
@@ -61,11 +102,14 @@ int open_table(char *pathname)
 		printf("Make sure to call close_table() for data[%d]\n", tid);
 		return -1;
 	}
+	if (tid == 0 && pathname[strlen(pathname) - 3] == 1)
+		tid = 10;
+
 	table[tid].fd = open(pathname, O_RDWR | O_CREAT | O_EXCL, 0777);
 	buf_man.table_size[tid] = 0;
 	header_page *headerP = (header_page*)calloc(1, PAGESIZE);
 
-	if (table[tid].fd > 0) {
+	if (table[tid].fd > 0) {//Table is newly created
 		headerP->num_pages = 1;
 		temp = pwrite(table[tid].fd, headerP, PAGESIZE, SEEK_SET);
 		if (temp < PAGESIZE) {
@@ -101,7 +145,6 @@ int close_table(int table_id)
 			buf_man.buffer_pool[i].is_dirty = false;
 			buf_man.buffer_pool[i].refbit = false;
 			buf_man.buffer_pool[i].pin_count = 0;
-			buf_man.table_size[i] = 0;
 		}
 	}
 	close(table[table_id].fd);
@@ -247,9 +290,9 @@ void flush_result(FILE *result_fp, buffer_structure *result_cache, int num_keys)
 
 //read and open the page from the disk.
 //must free page after use.
-//If page is alread in buffer pool, simpl returns it
+//If page is alread in buffer pool, simply returns it
 //If not, locate page from the disk and read it.
-//If buffer pool is full, find idle buffer page based on CLOCK policy and change it.
+//If buffer pool is full, find idle buffer page to flush based on CLOCK policy and change it.
 buffer_structure* open_page(int table_id, off_t po)
 {
 	buffer_structure *ret = NULL;
@@ -265,15 +308,6 @@ buffer_structure* open_page(int table_id, off_t po)
 			return &buf_man.buffer_pool[loc];
 		}
 	}
-	// else {
-	// 	for (int i = 0; i < buf_man.capacity; i++) {
-	// 		if (buf_man.buffer_pool[i].tid == table_id && buf_man.buffer_pool[i].cpo == po) {
-	// 			buf_man.buffer_pool[i].refbit = true;
-	// 			buf_man.buffer_pool[i].pin_count += 1;
-	// 			return &buf_man.buffer_pool[i];
-	// 		}
-	// 	}
-	// }
 	else {
 		hf = &buf_man.hash_table[hashing];
 		int loc = -1;
@@ -328,6 +362,8 @@ buffer_structure* open_page(int table_id, off_t po)
 void write_buffer(buffer_structure *cur_buf)
 {
 	int temp;
+	write_log(cur_buf->lsn);
+
 	temp = pwrite(table[cur_buf->tid].fd, cur_buf, PAGESIZE, cur_buf->cpo);
 	if (temp < PAGESIZE) {
 		printf("Failed to write from buffer_structure()\n");

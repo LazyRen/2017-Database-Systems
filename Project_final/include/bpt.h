@@ -3,6 +3,7 @@
 
 //user included header
 #include "page.h"
+#include "log_recovery.h"
 
 // FUNCTION PROTOTYPES
 

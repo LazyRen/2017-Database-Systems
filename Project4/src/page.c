@@ -100,7 +100,6 @@ int close_table(int table_id)
 			buf_man.buffer_pool[i].is_dirty = false;
 			buf_man.buffer_pool[i].refbit = false;
 			buf_man.buffer_pool[i].pin_count = 0;
-			buf_man.table_size[i] = 0;
 		}
 	}
 	close(table[table_id].fd);
