@@ -24,8 +24,9 @@
 	off_t ppo;\
 	int is_leaf;\
 	int num_keys;\
+	char ph_reserved1[8];\
 	off_t lsn;\
-	char ph_reserved[96];\
+	char ph_reserved2[88];\
 	off_t expo;\
 }
 //off_t expo: extra page offset points to
@@ -111,8 +112,8 @@ typedef struct log_manager {
 	off_t last_lsn;
 	int current_trx_id;
 	int last_trx_id;
-	struct log_structure *log_spt;		//pointer to the front of the in-memory log
-	struct log_structure *log_ept;		//pointer to the end of the in-menory log
+	struct log_structure *head;		//pointer to the front of the in-memory log
+	struct log_structure *tail;		//pointer to the end of the in-menory log
 } log_manager;
 
 typedef struct log_structure {

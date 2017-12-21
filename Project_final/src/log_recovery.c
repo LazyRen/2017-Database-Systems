@@ -3,7 +3,7 @@
 int begin_transaction()
 {
 	if (log_man.current_trx_id != -1) {
-		fprintf(stderr, "transaction %d is already running\n", log_man.current_trx_id);
+		// fprintf(stderr, "transaction %d is already running\n", log_man.current_trx_id);
 		return -1;
 	}
 
@@ -18,53 +18,62 @@ int begin_transaction()
 int commit_transaction()
 {
 	if (log_man.current_trx_id == -1) {
-		fprintf(stderr, "No transaction to commit\n");
+		// fprintf(stderr, "No transaction to commit\n");
 		return -1;
 	}
 
 	log_structure *tmp_structure = create_log(COMMIT);
 
 	add_log(tmp_structure);
-	write_log(tmp_structure->lsn);
+	write_log(log_man.last_lsn);
 	log_man.current_trx_id = -1;
-
 	return 0;
 }
 
 int abort_transaction()
 {
 	if (log_man.current_trx_id == -1) {
-		fprintf(stderr, "No transaction to abort\n");
+		// fprintf(stderr, "No transaction to abort\n");
 		return -1;
 	}
 
 	log_structure *tmp_structure = create_log(ABORT);
 	add_log(tmp_structure);
 
-	undo_trx(tmp_structure->plsn);
+	undo_txn(tmp_structure->plsn);
 	log_man.current_trx_id = -1;
+	write_log(log_man.last_lsn);
+	
 	return 0;
 }
 
 void recover(log_structure *cur_log)
 {
+	// fprintf(stderr, "\n");
 	off_t cpo = cur_log->cpn * PAGESIZE;
 	int prev_trx_id = log_man.current_trx_id;
 	buffer_structure *tmp = open_page(cur_log->table_id, cpo);
-	if (tmp->lsn >= cur_log->lsn)
+	if (tmp->lsn >= cur_log->lsn) {
+		// fprintf(stderr, "consider recover %"PRId64"\n", cur_log->lsn);
+		drop_pincount(tmp, false);
 		return;
+	}
 
 	log_man.current_trx_id = -1;
+	// fprintf(stderr, "key: %"PRId64"\n %s to %s\n", cur_log->old_key, cur_log->old_image, cur_log->new_image);
 	update(cur_log->table_id, cur_log->old_key, cur_log->new_image);
+	tmp->lsn = cur_log->lsn;
+	drop_pincount(tmp, true);
 	log_man.current_trx_id = prev_trx_id;
 
 	return;
 }
 
-void undo_trx(off_t lsn)
+void undo_txn(off_t lsn)
 {
 	log_structure *to_undo = open_log(lsn);
 	log_man.current_trx_id = to_undo->trx_id;
+	off_t tmp_lsn;
 	while(to_undo != NULL) {
 		if (to_undo->type == BEGIN || to_undo->type == ABORT) {
 			free(to_undo);
@@ -84,8 +93,9 @@ void undo_trx(off_t lsn)
 		//actual undo
 		recover(undo_log);
 
+		tmp_lsn = to_undo->plsn;
 		free(to_undo);
-		to_undo = open_log(to_undo->plsn);
+		to_undo = open_log(tmp_lsn);
 	}
 
 	log_structure *tmp_structure = create_log(END);
@@ -116,7 +126,7 @@ log_structure* open_log(off_t lsn)
 {
 	bool in_memory = false;
 	log_structure *temp_log = (log_structure*)calloc(1, sizeof(log_structure));
-	log_structure *tmp_structure  = log_man.log_spt;
+	log_structure *tmp_structure  = log_man.head;
 
 	if (lsn <= 0) {
 		free(temp_log);
@@ -139,17 +149,17 @@ log_structure* open_log(off_t lsn)
 
 void add_log(log_structure *new_log)
 {
-	if (log_man.log_spt == NULL) {
-		log_man.log_spt = new_log;
-		log_man.log_ept = new_log;
+	if (log_man.head == NULL) {
+		log_man.head = new_log;
+		log_man.tail = new_log;
 		new_log->prev = NULL;
 		new_log->next = NULL;
 	}
 	else {
 		new_log->next = NULL;
-		new_log->prev = log_man.log_ept;
-		log_man.log_ept->next = new_log;
-		log_man.log_ept = new_log;
+		new_log->prev = log_man.tail;
+		log_man.tail->next = new_log;
+		log_man.tail = new_log;
 	}
 
 	return;
@@ -157,19 +167,45 @@ void add_log(log_structure *new_log)
 
 void write_log(off_t lsn)
 {
-	log_structure *tmp_structure;
-
-	while(log_man.log_spt->lsn <= lsn && log_man.log_spt != NULL) {
-		tmp_structure = log_man.log_spt;
+	log_structure *tmp_structure = log_man.head;
+	if (tmp_structure == NULL)
+		return;
+	while(tmp_structure->lsn <= lsn) {
 		pwrite(log_man.fd, tmp_structure, LOGSIZE, tmp_structure->lsn - LOGSIZE);
 		log_man.flushed_lsn = tmp_structure->lsn;
-		log_man.log_spt = tmp_structure->next;
-		log_man.log_spt->prev = NULL;
-		free(tmp_structure);
+		if (tmp_structure->next != NULL) {
+			log_man.head = tmp_structure->next;
+			log_man.head->prev = NULL;
+			free(tmp_structure);
+			tmp_structure = log_man.head;
+		}
+		else {
+			log_man.head = log_man.tail = NULL;
+			free(tmp_structure);
+			break;
+		}
 	}
-
-	if (log_man.log_spt == NULL)
-		log_man.log_ept = NULL;
-
+	// fprintf(stderr, "end write_log\n");
 	return;
+}
+
+void show_log_manager()
+{
+	printf("flushed_lsn : %"PRId64"\n", log_man.flushed_lsn);
+	printf("last_lsn : %"PRId64"\n", log_man.last_lsn);
+	printf("current trx id: %d\n", log_man.current_trx_id);
+	printf("last trx id: %d\n\n", log_man.last_trx_id);
+
+	log_structure *tmp_log = log_man.head;
+	while(tmp_log != NULL) {
+		printf("lsn: %"PRId64"\n", tmp_log->lsn);
+		printf("plsn: %"PRId64"\n", tmp_log->plsn);
+		printf("trx id: %d\n", tmp_log->trx_id);
+		printf("type: %d\n", tmp_log->type);
+		printf("table id: %d\n", tmp_log->table_id);
+		printf("cpn: %d\nso: %d\n", tmp_log->cpn, tmp_log->so);
+
+		tmp_log = tmp_log->next;
+		printf("\n");
+	}
 }

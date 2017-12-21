@@ -202,10 +202,10 @@ print("-------------- Sequantial Insert Test --------------")
 test_case_seq("Large(2^20)", LARGE_CASE)
 
 
-print("--------------   Random Insert Test   --------------")
+# print("--------------   Random Insert Test   --------------")
 # test_case_rnd("Small(2^10)", SMALL_CASE)
 # test_case_rnd("Medium(2^15)", MEDIUM_CASE)
-test_case_rnd("Large(2^20)", LARGE_CASE)
+# test_case_rnd("Large(2^20)", LARGE_CASE)
 
 sleep(0.1)
 
@@ -216,7 +216,7 @@ sleep(0.1)
 # print("--------------      Delete Test       --------------")
 # test_delete_seq()
 # test_delete_rev()
-test_delete_random("Random_Delete_ALL(2^20)", LARGE_CASE)
+# test_delete_random("Random_Delete_ALL(2^20)", LARGE_CASE)
 # test_delete_chunk()
 # test_delete_random("Random_Delete_Small(2^10)", SMALL_CASE)
 # test_delete_random("Random_Delete_Medium(2^15)", MEDIUM_CASE)

@@ -37,9 +37,7 @@ static_library:
 	ar cr $(LIBS)libbpt.a $(OBJS_FOR_LIB)
 
 rmdb:
-	rm -f DATA*
 	rm -f *.db
-	rm -f ./result.txt
 
 re: 
 	make clean
