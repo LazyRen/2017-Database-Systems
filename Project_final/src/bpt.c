@@ -910,9 +910,11 @@ int update(int table_id, int64_t key, char *value)
 	off_t leaf_loc;
 	buffer_structure *leaf;
 	char *val;
-
-	if ((val = find(table_id, key)) == NULL)
+	// fprintf(stderr, "updating %"PRId64" with %s\n", key, value);
+	if ((val = find(table_id, key)) == NULL) {
+		// fprintf(stderr, "matching key to update not found\n");
 		return -1;
+	}
 
 	buffer_structure *headerP = open_page(table_id, SEEK_SET);
 	leaf = find_leaf(headerP, table_id, &leaf_loc, key);

@@ -18,7 +18,7 @@ int init_db (int num_buf)
 		buf_man.hash_table[i].prev = NULL;
 		buf_man.hash_table[i].next = NULL;
 	}
-	for (int i = 0; i < MAX_TABLE; i++) {
+	for (int i = 0; i <= MAX_TABLE; i++) {
 		table[i].fd = -1;
 	}
 	log_man.fd = -1;
@@ -28,14 +28,18 @@ int init_db (int num_buf)
 		log_man.last_lsn = 0;
 		log_man.current_trx_id = -1;
 		log_man.last_trx_id = 0;
-		log_man.log_spt = NULL;
-		log_man.log_ept = NULL;
+		log_man.head = NULL;
+		log_man.tail = NULL;
 	}
 		
 	else {//Do RECOVERY
+		// fprintf(stderr, "Starting Recovery\n");
 		log_man.fd = open(logname, O_RDWR | O_SYNC);
 		int cur_lsn = 0, loser_trx = -1;
 		log_structure *cur_log = calloc(1, sizeof(log_structure));
+		bool table_opened[11];
+
+		memset(table_opened, false, sizeof(table_opened));
 		while(pread(log_man.fd, cur_log, LOGSIZE, cur_lsn) == LOGSIZE) {
 			cur_lsn = cur_log->lsn;
 			if (cur_log->type == BEGIN) {
@@ -49,13 +53,26 @@ int init_db (int num_buf)
 				loser_trx = -1;
 				continue;
 			}
+			if (!table_opened[cur_log->table_id]) {
+				char tablename[10];
 
+				sprintf(tablename, "DATA%d", cur_log->table_id);
+				open_table(tablename);
+
+				table_opened[cur_log->table_id] = true;
+			}
 			recover(cur_log);
 		}
+		free(cur_log);
 		log_man.flushed_lsn = log_man.last_lsn = cur_lsn;
 		if (loser_trx != -1) //there is loser transaction
-			undo_trx(cur_lsn);
+			undo_txn(cur_lsn);
 		write_log(log_man.last_lsn);
+		log_man.current_trx_id = -1;
+		for (int i = 1; i <= 10; i++)
+			if (!table_opened[i])
+				close_table(i);
+		// fprintf(stderr, "recovery done\n");
 	}
 	return 0;
 }
@@ -66,28 +83,30 @@ int shutdown_db(void)
 	for (int i = 0; i < buf_man.capacity; i++)
 		if (buf_man.buffer_pool[i].is_dirty)
 			write_buffer(&buf_man.buffer_pool[i]);
-	printf("end for\n");
 	free(buf_man.buffer_pool);
 	free(buf_man.hash_table);
-	printf("end free\n");
 	return 0;
 }
 
 int open_table(char *pathname)
 {
-	int temp, tid;
+	int temp, tid = -1;
+	if (!strncmp("DATA", pathname, 4)) {
+		char num[5];
+		strcpy(num, pathname + 4);
+		if (1 <= atoi(num) && atoi(num) <= 10)
+			tid = atoi(num);
+	}
 
-	tid = pathname[strlen(pathname) - 2] - '0';
+
 	if (tid > 10 || tid < 0) {
 		printf("failed to retrieve tid\n");
 		return -1;
 	}
 	if (table[tid].fd != -1) {
-		printf("Table is already occupied\n");
-		printf("Make sure to call close_table() for data[%d]\n", tid);
-		return -1;
+		return tid;
 	}
-	if (tid == 0 && pathname[strlen(pathname) - 3] == 1)
+	if (tid == 0 && (pathname[strlen(pathname) - 2] == '1'))
 		tid = 10;
 
 	table[tid].fd = open(pathname, O_RDWR | O_CREAT | O_EXCL, 0777);
@@ -122,6 +141,7 @@ int close_table(int table_id)
 		return -1;
 	for (int i = 0; i < buf_man.capacity; i++) {
 		if (buf_man.buffer_pool[i].tid == table_id) {
+			delete_hash(buf_man.buffer_pool[i].tid, buf_man.buffer_pool[i].cpo);
 			if (buf_man.buffer_pool[i].is_dirty)
 				write_buffer(&buf_man.buffer_pool[i]);
 			buf_man.buffer_pool[i].tid = -1;
@@ -131,6 +151,7 @@ int close_table(int table_id)
 			buf_man.buffer_pool[i].pin_count = 0;
 		}
 	}
+	fsync(table[table_id].fd);
 	close(table[table_id].fd);
 	table[table_id].fd = -1;
 	return 0;
@@ -325,7 +346,9 @@ buffer_structure* open_page(int table_id, off_t po)
 void write_buffer(buffer_structure *cur_buf)
 {
 	int temp;
-	write_log(cur_buf->lsn);
+	if (cur_buf->lsn) {
+		write_log(cur_buf->lsn);
+	}
 
 	temp = pwrite(table[cur_buf->tid].fd, cur_buf, PAGESIZE, cur_buf->cpo);
 	if (temp < PAGESIZE) {
@@ -447,24 +470,24 @@ void show_buffer_manager(void)
 
 void print_page_info(buffer_structure *cur_page, int64_t *total_keys)
 {
-	printf("%s page at %"PRId64" - %"PRId64"\n", cur_page->is_leaf ? "leaf" : "internal", cur_page->ppo/4096, cur_page->cpo/4096);
-	printf("# of keys: %d\n", cur_page->num_keys);
+	fprintf(stderr, "%s page at %"PRId64" - %"PRId64"\n", cur_page->is_leaf ? "leaf" : "internal", cur_page->ppo/4096, cur_page->cpo/4096);
+	fprintf(stderr, "# of keys: %d\n", cur_page->num_keys);
 	if (cur_page->is_leaf && total_keys != NULL)
 		*total_keys += cur_page->num_keys;
-	printf("{");
+	fprintf(stderr, "{");
 	for (int i = 0; i < cur_page->num_keys; i++) {
 		if (cur_page->is_leaf) {
-			printf("[%"PRId64":%s] ", cur_page->records[i].key, cur_page->records[i].value);
+			fprintf(stderr, "[%"PRId64":%s] ", cur_page->records[i].key, cur_page->records[i].value);
 		}
 		else {
-			printf("%"PRId64" ", cur_page->entries[i].key);
+			fprintf(stderr, "%"PRId64" ", cur_page->entries[i].key);
 		}
 	}
-	printf("}\n");
+	fprintf(stderr, "}\n");
 }
 
 void print_tree(int table_id) {
-	printf("\n\n\n");
+	fprintf(stderr, "\n\n\n");
 	queue myQ;
 	buffer_structure *cur_page, *heightpage, *tmppage;
 	buffer_structure *headerP = open_page(table_id, SEEK_SET);
@@ -474,8 +497,8 @@ void print_tree(int table_id) {
 	int height = 0, num_internals = 0, num_fpage = 0;
 
 	init_queue(&myQ);
-	printf("fpo: %"PRId64"\nrpo: %"PRId64"\n", headerP->fpo/4096, headerP->rpo/4096);
-	printf("# of pages: %"PRId64"\n\n", headerP->num_pages);
+	fprintf(stderr, "fpo: %"PRId64"\nrpo: %"PRId64"\n", headerP->fpo/4096, headerP->rpo/4096);
+	fprintf(stderr, "# of pages: %"PRId64"\n\n", headerP->num_pages);
 
 	freepage = headerP->fpo;
 	while (freepage != 0) {
@@ -486,8 +509,8 @@ void print_tree(int table_id) {
 	}
 
 	if (headerP->rpo == 0) {
-		printf("Empty Tree\n");
-		printf("# of free page: %d\n", num_fpage);
+		fprintf(stderr, "Empty Tree\n");
+		fprintf(stderr, "# of free page: %d\n", num_fpage);
 		return;
 	}
 
@@ -498,14 +521,14 @@ void print_tree(int table_id) {
 		heightpage = open_page(table_id, heightpage->entries[0].npo);
 	}
 	drop_pincount(heightpage, false);
-	printf("tree height: %d\n", height);
+	fprintf(stderr, "tree height: %d\n", height);
 
 	enqueue(&myQ, headerP->rpo);
 	while(!is_empty(&myQ)) {
 		cur = dequeue(&myQ);
 		cur_page = open_page(table_id, cur);
 		if(cur_page->ppo != parent) {
-			printf("\n\nnext level\n");
+			fprintf(stderr, "\n\nnext level\n");
 			parent = cur_page->ppo;
 		}
 		print_page_info(cur_page, &total_keys);
@@ -519,8 +542,8 @@ void print_tree(int table_id) {
 		drop_pincount(cur_page, false);
 	}
 
-	printf("# of internal pages: %d, # of leaf pages: %"PRId64", # of free pages: %d\n", num_internals, headerP->num_pages - num_internals - num_fpage - 1, num_fpage);
-	printf("total keys: %"PRId64"\n", total_keys);
+	fprintf(stderr, "# of internal pages: %d, # of leaf pages: %"PRId64", # of free pages: %d\n", num_internals, headerP->num_pages - num_internals - num_fpage - 1, num_fpage);
+	fprintf(stderr, "total keys: %"PRId64"\n", total_keys);
 	drop_pincount(headerP, false);
 }
 
