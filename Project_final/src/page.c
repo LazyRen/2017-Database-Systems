@@ -35,6 +35,12 @@ int init_db (int num_buf)
 	else {//Do RECOVERY
 		// fprintf(stderr, "Starting Recovery\n");
 		log_man.fd = open(logname, O_RDWR | O_SYNC);
+		log_man.flushed_lsn = 0;
+		log_man.last_lsn = 0;
+		log_man.current_trx_id = -1;
+		log_man.last_trx_id = 0;
+		log_man.head = NULL;
+		log_man.tail = NULL;
 		int cur_lsn = 0, loser_trx = -1;
 		log_structure *cur_log = calloc(1, sizeof(log_structure));
 		bool table_opened[11];
