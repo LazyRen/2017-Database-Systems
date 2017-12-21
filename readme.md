@@ -2,6 +2,21 @@
 original BPT source code is written by Amittai Aviram (http://www.amittai.com)
 
 modified by Dae In Lee
+
+# Recovery
+Only "update" function works for recovery. Almost done insertion & deletion but something messed up with deletion and ultimatly failed on even with isertion & update. So I had to roll back to update only recovery.
+Should have committed insertion finished files...
+
+The format of the db file must be DATA1 ~ DATA10, and it must be present at the same directory with program main file. Recovery won't work if not.
+
+log data is saved as "log.db"
+
+Recovery is done based on "physical recovery" Compare the leaf page lsn to the log lsn, if log lsn has higher value, do recovery. (Undo is vice versa)
+
+Unlike most of students, I used "double linked list" to manage the inmemory logs. In this way, log is flushed into the disk only when it has to(steal: when buffer manager flushes buffer, no force:at the time of commit).
+
+There is no CLE type log but however, abort txn will use END / UPDATE log type to finish undo.
+
 # Features
 
 This project implemented B+ Tree data structure to construct single-user diskbased DB.
