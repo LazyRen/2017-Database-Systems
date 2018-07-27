@@ -58,18 +58,17 @@ sorting process is not required. Therefore avg. time complexity of join_table is
 
 # Code Guidance
 
-please check [bpt.pdf][pdflink] for more information about the codes and implementation.
-[pdflink]: https://hconnect.hanyang.ac.kr/2017_ITE2038_11735/2017_ITE2038_2014004893/blob/master/bpt.pdf
+please check [bpt.pdf](./bpt.pdf) for more information about the codes and implementation.
 
 # Performance
 
 ## Insertion Performance
-![Sequential Insertion](./Chart/Sequential Insertion.jpeg)
-![Random Insertion](./Chart/Random Insertion.jpeg)
+![Sequential Insertion](./Chart/Sequential%20Insertion.jpeg)
+![Random Insertion](./Chart/Random%20Insertion.jpeg)
 
 ## Deletion Performance
-![Sequential Deletion](./Chart/Sequential Deletion.jpeg)
-![Random Deletion](./Chart/Random deletion.jpeg)
+![Sequential Deletion](./Chart/Sequential%20Deletion.jpeg)
+![Random Deletion](./Chart/Random%20deletion.jpeg)
 
 As you can see from the chart, any kind of buffer implementation enhances performance to 1.3 ~ 12 times depending on the workload.
 
