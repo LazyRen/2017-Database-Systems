@@ -19,6 +19,8 @@ modified by Dae In Lee
   * Write Ahead Logging (WAL)
   * Recovery happen during the initializing DB if crashed eariler.
   
+  Check [here](#recovery) for some information.
+  
   ![Log Manager](./assets/recovery.png)
 
 # Features
