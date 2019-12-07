@@ -40,7 +40,7 @@ $(TEST_TARGET): $(TEST_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ -L $(LIBS) -lbpt_origin
 
 clean:
-	-rm -f $(TARGET) $(TARGET_OBJ) $(OBJS_FOR_LIB) $(TEST_TARGET) $(TEST_OBJ) $(OBJS_FOR_TEST) $(LIBS)* 
+	-rm -f $(TARGET) $(TARGET_OBJ) $(OBJS_FOR_LIB) $(TEST_TARGET) $(TEST_OBJ) $(OBJS_FOR_TEST) $(LIBS)*
 
 library:
 	gcc -shared -Wl,-soname,libbpt.so -o $(LIBS)libbpt.so $(OBJS_FOR_LIB)
@@ -52,7 +52,7 @@ static_library_test:
 	ar cr $(LIBS)libbpt_origin.a $(OBJS_FOR_TEST)
 rmdb:
 	rm -f ./mydb
-re: 
+re:
 	make clean
 	make rmdb
 	make

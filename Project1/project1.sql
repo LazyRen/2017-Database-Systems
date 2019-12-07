@@ -5,19 +5,19 @@ use Pokemon;
 set sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
 
 #1
-select name from Trainer 
+select name from Trainer
 where hometown = 'Blue City';
 
 #2
-select name from Trainer 
+select name from Trainer
 where hometown = 'Brown City' or hometown = 'Rainbow City';
 
 #3
-select name, hometown from Trainer 
+select name, hometown from Trainer
 where name like 'a%' or name like 'e%' or name like 'i%' or name like 'o%' or name like 'u%';
 
 #4
-select name as Pokemon from Pokemon 
+select name as Pokemon from Pokemon
 where type = 'Water';
 
 #5
@@ -33,7 +33,7 @@ select name from Pokemon where name like '%s';
 select name from Pokemon where name like '%e%s';
 
 #9
-select name from Pokemon 
+select name from Pokemon
 where name like 'a%' or name like 'e%' or name like 'i%' or name like 'o%' or name like 'u%';
 
 #10
@@ -46,7 +46,7 @@ select nickname from CatchedPokemon order by level desc limit 3;
 select avg(level) as 'Average Level' from CatchedPokemon;
 
 #13
-select (max(level) - min(level)) as 'Max Diff. of Level' from CatchedPokemon; 
+select (max(level) - min(level)) as 'Max Diff. of Level' from CatchedPokemon;
 
 #14
 select count(*) as '# of Pokemon' from Pokemon where name between 'b' and 'f' and name <> 'f';
@@ -55,7 +55,7 @@ select count(*) as '# of Pokemon' from Pokemon where name between 'b' and 'f' an
 select count(*) as '# of Pokemon' from Pokemon where type not in ('Fire', 'Grass', 'Water', 'Electric');
 
 #16
-select Trainer.name as 'Trainer', Pokemon.name as 'Pokemon', nickname from CatchedPokemon 
+select Trainer.name as 'Trainer', Pokemon.name as 'Pokemon', nickname from CatchedPokemon
 join Trainer on CatchedPokemon.owner_id = Trainer.id
 join Pokemon on CatchedPokemon.pid = Pokemon.id
 where nickname like '% %' order by Trainer.name, Pokemon.name;
@@ -67,7 +67,7 @@ where Trainer.id in (
 	join Pokemon on CatchedPokemon.pid = Pokemon.id and Pokemon.type = 'Psychic');
 
 #18
-select Trainer.name, Trainer.hometown from Trainer 
+select Trainer.name, Trainer.hometown from Trainer
 join CatchedPokemon on Trainer.id = CatchedPokemon.owner_id
 group by Trainer.id order by avg(CatchedPokemon.level) desc limit 3;
 
@@ -111,7 +111,7 @@ group by Trainer.id having count(distinct Pokemon.type) = 1;
 select Trainer.name, Pokemon.type, count(Pokemon.type) as '# of Pokemon' from Trainer
 join CatchedPokemon on Trainer.id = CatchedPokemon.owner_id
 join Pokemon on Pokemon.id = CatchedPokemon.pid
-group by Trainer.id, Pokemon.type 
+group by Trainer.id, Pokemon.type
 order by Trainer.name, Pokemon.type, count(Pokemon.type);
 
 #26
@@ -136,16 +136,16 @@ left join CatchedPokemon on Trainer.id = CatchedPokemon.owner_id and level >= 50
 group by Trainer.id order by sum(CatchedPokemon.level);
 
 #29
-select Pokemon.name from CatchedPokemon 
-join Pokemon on CatchedPokemon.pid = Pokemon.id 
+select Pokemon.name from CatchedPokemon
+join Pokemon on CatchedPokemon.pid = Pokemon.id
 join Trainer on CatchedPokemon.owner_id = Trainer.id and Trainer.hometown = 'Blue City'
 where Pokemon.name in (
-	select Pokemon.name from CatchedPokemon 
-	join Pokemon on CatchedPokemon.pid = Pokemon.id 
+	select Pokemon.name from CatchedPokemon
+	join Pokemon on CatchedPokemon.pid = Pokemon.id
 	join Trainer on CatchedPokemon.owner_id = Trainer.id and Trainer.hometown = 'Sangnok City');
 
 #30
-select Pokemon.name from Pokemon 
-join Evolution as E1 on Pokemon.id = E1.after_id 
-left join Evolution as E2 on E1.after_id = E2.before_id 
+select Pokemon.name from Pokemon
+join Evolution as E1 on Pokemon.id = E1.after_id
+left join Evolution as E2 on E1.after_id = E2.before_id
 where E2.before_id is null;

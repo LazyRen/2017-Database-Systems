@@ -230,7 +230,7 @@ buffer_structure* get_free_page(int table_id, off_t ppo, off_t *page_loc, int is
 		free(temp_page);
 		new_page = open_page(table_id, *page_loc);
 		new_page->ppo = ppo; new_page->is_leaf = is_leaf;
-		
+
 		headerP->num_pages++;
 		drop_pincount(headerP, true);
 	}
@@ -256,7 +256,7 @@ void add_free_page(int table_id, off_t page_loc)
 	buffer_structure *new_free_page = open_page(table_id, page_loc);
 	memset(new_free_page, 0, PAGESIZE);
 	new_free_page->ppo = headerP->fpo;
-	
+
 
 	headerP->fpo = page_loc;
 	drop_pincount(headerP, true);
@@ -279,7 +279,7 @@ void insert_hash(int tid, int64_t cpo, int loc)
 
 void delete_hash(int tid, int64_t cpo)
 {
-	// printf("delete_buffer(%d %"PRId64")\n", tid, cpo); 
+	// printf("delete_buffer(%d %"PRId64")\n", tid, cpo);
 	if (tid == -1 || cpo == -1)
 		return;
 	int hashing = (cpo/PAGESIZE) % buf_man.capacity;
@@ -447,7 +447,7 @@ void print_tree(int table_id) {
 	queue myQ;
 	buffer_structure *cur_page, *heightpage, *tmppage;
 	buffer_structure *headerP = open_page(table_id, SEEK_SET);
-	
+
 	off_t parent = 0, freepage, cur;
 	int64_t total_keys = 0;
 	int height = 0, num_internals = 0, num_fpage = 0;
@@ -509,18 +509,18 @@ void init_queue(queue *q)
 	q->front = q->rear = NULL; //front와 rear를 NULL로 설정
 	q->count = 0;//보관 개수를 0으로 설정
 }
- 
+
 int is_empty(queue *q)
 {
 	return q->count == 0;
 }
- 
+
 void enqueue(queue *q, off_t data)
 {
 	qnode *now = (qnode *)malloc(sizeof(qnode));
 	now->po = data;
 	now->next = NULL;
- 
+
 	if (is_empty(q))
 	{
 		q->front = now;
@@ -532,7 +532,7 @@ void enqueue(queue *q, off_t data)
 	q->rear = now;
 	q->count++;
 }
- 
+
 off_t dequeue(queue *q)
 {
 	off_t cpo = 0;

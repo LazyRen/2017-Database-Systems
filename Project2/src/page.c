@@ -77,7 +77,7 @@ page* get_free_page(off_t ppo, off_t *page_loc, int is_leaf)
 			printf("Failed to write from get_free_page()\n");
 			exit(EXIT_FAILURE);
 		}
-		
+
 		headerP->num_pages++;
 		temp = pwrite(db_fd, headerP, PAGESIZE, SEEK_SET);
 		if (temp < PAGESIZE) {
@@ -196,18 +196,18 @@ void init_queue(queue *q)
 	q->front = q->rear = NULL; //front와 rear를 NULL로 설정
 	q->count = 0;//보관 개수를 0으로 설정
 }
- 
+
 int is_empty(queue *q)
 {
 	return q->count == 0;
 }
- 
+
 void enqueue(queue *q, off_t data)
 {
 	qnode *now = (qnode *)malloc(sizeof(qnode));
 	now->po = data;
 	now->next = NULL;
- 
+
 	if (is_empty(q))
 	{
 		q->front = now;
@@ -219,7 +219,7 @@ void enqueue(queue *q, off_t data)
 	q->rear = now;
 	q->count++;
 }
- 
+
 off_t dequeue(queue *q)
 {
 	off_t cpo = 0;

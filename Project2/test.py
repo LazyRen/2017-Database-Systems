@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/local/bin/python3
 
 '''
 	test program
@@ -29,14 +29,14 @@ def test_case(arr):
 		p.stdin.flush()
 	end = timer()
 
-	# validate 
+	# validate
 	for i in arr:
 		input_d = FIND_CMD_FMTS % (i)
 		p.stdin.write(input_d.encode("utf-8"))
 		p.stdin.flush()
 		result = p.stdout.readline().decode('utf-8').strip()
 		if (result == (FIND_RESULT_FMTS % (i, 'a' + str(i))).strip()):
-			succ += 1   
+			succ += 1
 
 	p.kill()
 	f.close()
@@ -68,20 +68,20 @@ def delete_test_case(arr):
 
 def test_case_seq(casename, case_size):
 	print(casename + " Test")
-	
+
 	result, elapse = test_case(range(case_size))
-	
+
 	print(RESULT_FMTS % (result, case_size, float(result)/case_size * 100, elapse))
 	os.rename("test.db", "last_test.db")
-	
+
 
 def test_case_rnd(casename, case_size):
 	print(casename + " Test")
 	arr = list(range(case_size))
 	shuffle(arr)
-	
+
 	result, elapse = test_case(arr)
-	
+
 	print(RESULT_FMTS % (result, case_size, float(result)/case_size * 100, elapse))
 	os.rename("test.db", "last_test.db")
 
@@ -91,7 +91,7 @@ def delete_test_rnd(casename, case_size):
 	shuffle(arr)
 
 	result, elapse = delete_test_case(arr)
-	
+
 	print(RESULT_FMTS % (result, case_size, float(result)/case_size * 100, elapse))
 	os.rename("test.db", "last_test.db")
 
@@ -103,8 +103,8 @@ try:
 except:
 	pass
 
-# print("---------- Sequantial Insert Test -----------")
-# test_case_seq("Small(2^10)", 2 ** 10)
+print("---------- Sequantial Insert Test -----------")
+test_case_seq("Small(2^10)", 2 ** 10)
 # test_case_seq("Medium(2^15)", 2 ** 15)
 # test_case_seq("Large(2^20)", 2 ** 20)
 

@@ -3,41 +3,50 @@ original BPT source code is written by Amittai Aviram (http://www.amittai.com)
 
 modified by Dae In Lee
 
-# Recovery
-Only "update" function works for recovery. Almost done insertion & deletion but something messed up with deletion and ultimatly failed on even with isertion & update. So I had to roll back to update only recovery.
-Should have committed insertion finished files...
+## Projects
 
-The format of the db file must be DATA1 ~ DATA10, and it must be present at the same directory with program main file. Recovery won't work if not.
-
-log data is saved as "log.db"
-
-Recovery is done based on "physical recovery" Compare the leaf page lsn to the log lsn, if log lsn has higher value, do recovery. (Undo is vice versa)
-
-Unlike most of students, I used "double linked list" to manage the inmemory logs. In this way, log is flushed into the disk only when it has to(steal: when buffer manager flushes buffer, no force:at the time of commit).
-
-There is no CLE type log but however, abort txn will use END / UPDATE log type to finish undo.
+* **[Project1](./project1)**<br>SQL queries test.
+* **[Project2 - Disk-based B+ Tree](./project2)**<br>Basic Disk-based B+ Tree Implementation. Check [Features](#features) for more information.<br>![B+ Tree](./assets/B+ Tree.png)
+* **[Project3 - Buffer Manager](./project3)**<br>Implement in-memory buffer manager to cache on-disk pages.<br>Adding buffer layer to B+ Tree significantly enhances overall [performance of data structure](#performance).<br>![Buffer Manager](./assets/buffer manager.png)
+* **[Project4 - Natural Join](./project4)**<br>Implement new function `int join_table(int table_id_1, int table_id_2, char* path_name);`<br>This function does natural join with given two tables and write result table to the file with given `path_name`.<br>It returns 0 if success, otherwise return non-zero value.<br>Note that two tables for the join must be opened before calling the function.
+* **[Project5 - Log Manager](./project5)**<br>Implement log manager to support transaction & recovery from the crashes.<br>Log manager satisties...
+  * No Force (REDO) & Steal (UNDO) policy
+  * Write Ahead Logging (WAL)
+  * Recovery happen during the initializing DB if crashed eariler.
 
 # Features
 
 This project implemented B+ Tree data structure to construct single-user diskbased DB.
 
-Each "data" is constructed with <key:value>
+Each "data" is constructed with <key:value> pair.
 
 The following commands are available to manipulate DB.
 
-	init_db(num_buf);
-	shutdown_db();
-	open_table(pathname);
-	close_table(table_id);
+```c++
+init_db(num_buf);
+shutdown_db();
+open_table(pathname);
+close_table(table_id);
+```
 
 The following commands are available to insert, delete or search data.
 
-	print_tree(table_id)
-	find(table_id, key)
-	find_and_print(table_id, key)
-	insert(table_id, key, value)
-	delete(table_id, key)
-	join_table(table_id_1, table_id_2, pathname)
+```c++
+print_tree(table_id);
+find(table_id, key);
+find_and_print(table_id, key);
+insert(table_id, key, value);
+delete(table_id, key);
+join_table(table_id_1, table_id_2, pathname);
+```
+
+The following commands are available to support transaction APIs.
+
+```c++
+begin_transaction();
+commit_transaction();
+abort_transaction();
+```
 
 * **You must initialize DB** by calling init_db(num_buf).
 Number of buffers to be used will be decided according to the num_buf variable.
@@ -56,19 +65,40 @@ It significiently increase the performance of buffer manager compare to linear/b
 * Join_table function will do **equi-join** using **sort-merge join**. Since both tables are already sortred,
 sorting process is not required. Therefore avg. time complexity of join_table is O([R] + [S]).
 
+
+
 # Code Guidance
 
 please check [bpt.pdf](./bpt.pdf) for more information about the codes and implementation.
 
+
+
+# Recovery
+
+Only "update" function works for recovery. Almost done insertion & deletion but something messed up with deletion and ultimatly failed on even with isertion & update. So I had to roll back to update only recovery.
+Should have committed insertion finished files...
+
+The format of the db file must be DATA1 ~ DATA10, and it must be present at the same directory with program main file. Recovery won't work if not.
+
+log data is saved as "log.db"
+
+Recovery is done based on "physical recovery" Compare the leaf page lsn to the log lsn, if log lsn has higher value, do recovery. (Undo is vice versa)
+
+Unlike most of students, I used "double linked list" to manage the inmemory logs. In this way, log is flushed into the disk only when it has to(steal: when buffer manager flushes buffer, no force:at the time of commit).
+
+There is no CLE type log but however, abort txn will use END / UPDATE log type to finish undo.
+
+
+
 # Performance
 
 ## Insertion Performance
-![Sequential Insertion](./Chart/Sequential%20Insertion.jpeg)
-![Random Insertion](./Chart/Random%20Insertion.jpeg)
+![Sequential Insertion](./assets/Sequential%20Insertion.jpeg)
+![Random Insertion](./assets/Random%20Insertion.jpeg)
 
 ## Deletion Performance
-![Sequential Deletion](./Chart/Sequential%20Deletion.jpeg)
-![Random Deletion](./Chart/Random%20deletion.jpeg)
+![Sequential Deletion](./assets/Sequential%20Deletion.jpeg)
+![Random Deletion](./assets/Random%20deletion.jpeg)
 
 As you can see from the chart, any kind of buffer implementation enhances performance to 1.3 ~ 12 times depending on the workload.
 
@@ -118,7 +148,7 @@ Test code(python) was provided by CheonChangGeun.
 	Result: 1048576/1048576 (100.00) 201.31 secs
 	Random_Delete_ALL(2^20) Test
 	Result: 1048576/1048576 (100.00) 260.35 secs
-	
+
 ### Project3 - 16 Buffer Pool with Linear Search
 	-------------- Sequential Insert Test --------------
 	Large(2^20) Test
