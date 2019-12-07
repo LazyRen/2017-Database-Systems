@@ -7,7 +7,7 @@ modified by Dae In Lee
 
 * **[Project1](./project1)**<br>SQL queries test.
 * **[Project2 - Disk-based B+ Tree](./project2)**<br>Basic Disk-based B+ Tree Implementation. Check [Features](#features) for more information.<br>![B+ Tree](./assets/B+_Tree.png)
-* **[Project3 - Buffer Manager](./project3)**<br>Implement in-memory buffer manager to cache on-disk pages.<br>Adding buffer layer to B+ Tree significantly enhances overall [performance of data structure](#performance).<br>![Buffer Manager](./assets/buffer_manager.png)
+* **[Project3 - Buffer Manager](./project3)**<br>Implement in-memory buffer manager to cache on-disk pages.<br>Adding buffer layer to B+ Tree significantly enhances overall [performance of data structure](#performance).<br>![Buffer Manager](./assets/Buffer_Manager.png)
 * **[Project4 - Natural Join](./project4)**<br>Implement new function `int join_table(int table_id_1, int table_id_2, char* path_name);`<br>This function does natural join with given two tables and write result table to the file with given `path_name`.<br>It returns 0 if success, otherwise return non-zero value.<br>Note that two tables for the join must be opened before calling the function.
 * **[Project5 - Log Manager](./project5)**<br>Implement log manager to support transaction & recovery from the crashes.<br>Log manager satisties...
   * No Force (REDO) & Steal (UNDO) policy
