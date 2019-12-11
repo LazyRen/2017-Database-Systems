@@ -1,7 +1,9 @@
 # Disk Based B+ Tree
 original BPT source code is written by Amittai Aviram (http://www.amittai.com)
 
-modified by Dae In Lee
+modified by [![GitHub issue author](https://img.shields.io/badge/author-DaeIn%20Lee-blue.svg)](https://hconnect.hanyang.ac.kr/2014004893).
+
+If you find this repo helpful, please provide ![star](https://img.shields.io/github/stars/LazyRen/2017-Database-Systems?style=social) to credit the author.
 
 ## Projects
 
